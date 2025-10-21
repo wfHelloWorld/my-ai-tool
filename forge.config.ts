@@ -91,7 +91,7 @@ const config: ForgeConfig = {
       },
       // 支持常见环境变量名：GITHUB_TOKEN 或 GH_TOKEN
       authToken: process.env.GITHUB_TOKEN || process.env.GH_TOKEN,
-      draft: true, // 默认发布为草稿，安全
+      draft: false, // 默认发布为草稿，安全,false 表示直接发布 不需要在 GitHub 上手动发布
       prerelease: false,
       tagPrefix: 'v',
     }),

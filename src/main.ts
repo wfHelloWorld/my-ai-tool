@@ -2,6 +2,7 @@ import { app, BrowserWindow } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import dotenv from "dotenv";
+import { updateElectronApp } from "update-electron-app";
 import { createMenu } from "./menu";
 import { LoggerService } from "./services/logger";
 import { ProtocolService } from "./services/protocol";
@@ -105,3 +106,23 @@ app.on("activate", () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
+
+
+// 在生产环境集成自动更新（使用 update.electronjs.org）
+// 读取 .env 中的仓库信息与更新检查间隔
+try {
+  if (app.isPackaged) {
+    const owner = process.env.GITHUB_OWNER;
+    const repoName = process.env.GITHUB_REPO;
+    const repo = owner && repoName ? `${owner}/${repoName}` : undefined;
+    const updateInterval = process.env.UPDATE_INTERVAL || "10 minutes"; // 例如 "10 minutes"、"1 hour"
+    updateElectronApp({
+      repo,
+      updateInterval,
+      // logger: console, // 调试时可启用，输出检查更新日志
+      // notifyUser: true, // 如需弹窗提示用户更新
+    });
+  }
+} catch (err) {
+  console.warn("auto-update init failed:", err);
+}

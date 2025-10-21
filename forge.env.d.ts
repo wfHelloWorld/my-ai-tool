@@ -6,5 +6,6 @@ declare namespace NodeJS {
     GH_TOKEN?: string; // 兼容另一常见变量名
     GITHUB_OWNER?: string;
     GITHUB_REPO?: string;
+    UPDATE_INTERVAL?: string; // 自动更新检查间隔，例如 "10 minutes"、"1 hour"
   }
 }

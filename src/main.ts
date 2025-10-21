@@ -115,7 +115,7 @@ try {
     const owner = process.env.GITHUB_OWNER;
     const repoName = process.env.GITHUB_REPO;
     const repo = owner && repoName ? `${owner}/${repoName}` : undefined;
-    const updateInterval = process.env.UPDATE_INTERVAL || "10 minutes"; // 例如 "10 minutes"、"1 hour"
+    const updateInterval = process.env.UPDATE_INTERVAL || "1 hour"; // 例如 "10 minutes"、"1 hour"
     updateElectronApp({
       repo,
       updateInterval,

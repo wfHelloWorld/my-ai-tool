@@ -14,6 +14,7 @@ import { createRouter, createMemoryHistory } from "vue-router";
 import Home from "./views/Home.vue";
 import Conversation from "./views/Conversation.vue";
 import Settings from "./views/Settings.vue";
+import History from "./views/History.vue";
 import { useConversationStore } from "./stores/useConversationStore";
 import 'highlight.js/styles/1c-light.css'
 import { i18n, initI18n } from "./i18n";
@@ -24,6 +25,7 @@ const routes = [
   { path: "/", component: Home },
   { path: "/conversation/:id", component: Conversation },
   { path: "/settings", component: Settings },
+  { path: "/history", component: History },
 ];
 
 const router = createRouter({

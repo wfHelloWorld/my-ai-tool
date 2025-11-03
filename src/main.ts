@@ -31,7 +31,11 @@ const createWindow = async () => {
   const mainWindow = new BrowserWindow({
     width: 1600,
     height: 900,
-    title: "我的AI创作工具",
+    // 隐藏系统标题文本（macOS）
+    titleBarStyle: 'hiddenInset',
+    // 在 Windows/macOS 上启用标题栏覆盖，通常不会显示窗口标题文本
+    titleBarOverlay: true,
+    // title: "我的AI创作工具", // 不显示标题，保留注释方便回退
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
     },

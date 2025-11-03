@@ -4,13 +4,13 @@
       <template #label>
         <!-- 通用设置标签 -->
         <Icon icon="radix-icons:gear" width="15" height="15" class="pr-0.5" />
-        {{ $t("settings.title") }}
+        <span class="select-none">{{ $t("settings.title") }}</span>
       </template>
 
       <!-- 通用设置内容 -->
       <div>
         <div class="mb-6">
-          <label class="block mb-1 font-medium">
+          <label class="block mb-1 font-medium select-none">
             {{ $t("settings.language") }}
           </label>
           <el-radio-group v-model="currentConfig.language">
@@ -20,14 +20,23 @@
         </div>
 
         <div class="mb-6">
-          <label class="block mb-1 font-medium">
+          <label class="block mb-1 font-medium select-none">
             {{ $t("settings.fontSize") }}
           </label>
-          <el-input-number
-            v-model="currentConfig.fontSize"
-            :min="10"
-            :max="30"
-          />
+          <!-- 显示当前缩放倍率，仅供查看 -->
+          <div class="flex items-center gap-2">
+            <el-text class="select-none" size="large">
+              {{ (zoom * 100).toFixed(0) }}%
+            </el-text>
+            <el-text class="select-none" type="info" size="small">
+              ×{{ zoom.toFixed(2) }}
+            </el-text>
+          </div>
+          <div class="mt-2">
+            <el-text class="mx-1 select-none" type="info" size="small">
+              {{ $t("settings.zoomShortcuts") }}
+            </el-text>
+          </div>
         </div>
       </div>
     </el-tab-pane>
@@ -41,7 +50,7 @@
           height="15"
           class="pr-0.5"
         />
-        {{ $t("settings.key") }}
+        <span class="select-none">{{ $t("settings.key") }}</span>
       </template>
 
       <!-- 模型设置内容：折叠面板 -->
@@ -49,7 +58,7 @@
         <el-collapse v-model="activeNames" @change="handleChange">
           <el-collapse-item name="1">
             <template #title="{ isActive }">
-              <div :class="['title-wrapper', { 'is-active': isActive }]">
+              <div :class="['title-wrapper select-none', { 'is-active': isActive }]">
                 <el-icon>
                   <img src="../common/img/aLiYunBaiLian.svg" alt="" />
                 </el-icon>
@@ -57,13 +66,13 @@
               </div>
             </template>
             <div>
-              DASHSCOPE_API_KEY:
+              <span class="select-none">DASHSCOPE_API_KEY:</span>
               <el-input
                 v-model="currentConfig.DASHSCOPE_API_KEY"
                 placeholder="DASHSCOPE_API_KEY"
                 show-password
               />
-              URL:
+              <span class="select-none">URL:</span>
               <el-input
                 v-model="currentConfig.DASHSCOPE_URL"
                 placeholder="URL"
@@ -72,18 +81,18 @@
           </el-collapse-item>
           <el-collapse-item name="2">
             <template #title="{ isActive }">
-              <div :class="['title-wrapper', { 'is-active': isActive }]">
+              <div :class="['title-wrapper select-none', { 'is-active': isActive }]">
                 <img src="../common/img/deepSeek.png" alt="" class="h-6" />
               </div>
             </template>
             <div>
-              DEEPSEEK_API_KEY:
+              <span class="select-none">DEEPSEEK_API_KEY:</span>
               <el-input
                 v-model="currentConfig.DEEPSEEK_API_KEY"
                 placeholder="DEEPSEEK_API_KEY"
                 show-password
               />
-              URL:
+              <span class="select-none">URL:</span>
               <el-input
                 v-model="currentConfig.DEEPSEEK_URL"
                 placeholder="URL"
@@ -120,10 +129,13 @@ const handleChange = (val: string[] | string) => {
 
 const currentConfig = reactive<AppConfig>({
   language: "zh",
-  fontSize: 14,
+  fontSize: 1,
 });
 
-// 页面加载时初始化配置
+// 窗口缩放比例（通过 Electron 控制），默认 1
+const zoom = ref(1);
+
+// 页面加载时初始化配置与缩放
 onMounted(async () => {
   try {
     const config = await window.electronAPI.getConfig();
@@ -132,12 +144,20 @@ onMounted(async () => {
       setI18nLanguage(currentConfig.language);
       i18nStore.setLocale(currentConfig.language);
     }
+    // 获取当前缩放比例
+    const z = await window.electronAPI.getZoomFactor();
+    zoom.value = z ?? 1;
+    // 订阅主进程缩放变化（菜单/快捷键触发）
+    window.electronAPI.onZoomFactorChanged((factor: number) => {
+      zoom.value = factor;
+      currentConfig.fontSize = factor;
+    });
   } catch (error) {
     console.error("获取配置失败:", error);
   }
 });
 
-// 监听配置变化，统一更新
+// 监听配置变化（语言等），统一更新
 watch(
   currentConfig,
   async (newConfig) => {
@@ -163,7 +183,8 @@ watch(
 }
 
 .demo-collapse {
-  /* 你可以根据需要自定义折叠面板样式 */
+  /* 基础占位样式，避免空规则导致的 linter 警告 */
+  margin: 0;
 }
 
 .title-wrapper {

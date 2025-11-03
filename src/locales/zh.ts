@@ -2,11 +2,12 @@ export default {
   settings: {
     title: "应用设置",
     language: "语言",
-    fontSize: "字体大小",
+    fontSize: "界面缩放",
     selectLanguage: "选择语言...",
     general: "通用",
     models: "模型",
     key: "密钥",
+    zoomShortcuts: "快捷键：Command + / Command - / Command 0；Windows：Ctrl + / Ctrl - / Ctrl 0",
   },
   contextMenu: {
     deleteConversation: "删除对话",
@@ -15,8 +16,9 @@ export default {
     send: "发送",
     chinese: "中文",
     english: "English",
-    newChat: "新建聊天",
-    settings: "应用设置",
+    newChat: "新建",
+    history: "历史",
+    settings: "设置",
   },
   menu: {
     app: {

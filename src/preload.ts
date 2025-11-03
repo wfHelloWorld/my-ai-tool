@@ -37,4 +37,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // 从右键菜单触发删除聊天
   onDeleteConversation: (callback: (id: number) => void) =>
     ipcRenderer.on("delete-conversation", (_event, id) => callback(id)),
+
+  // 缩放控制
+  getZoomFactor: () => ipcRenderer.invoke("get-zoom-factor"),
+  setZoomFactor: (factor: number) => ipcRenderer.invoke("set-zoom-factor", factor),
+  onZoomFactorChanged: (callback: (factor: number) => void) =>
+    ipcRenderer.on("zoom-factor-changed", (_e, factor) => callback(factor)),
 });

@@ -9,3 +9,13 @@ body {
   padding: 2rem;
 }
  */
+
+/* 让指定区域可用于拖拽窗口 */
+.drag-region {
+  -webkit-app-region: drag;
+}
+
+/* 在拖拽区域内，保持可交互元素（按钮、输入框、滚动列表等）正常可点击/可滚动 */
+.no-drag {
+  -webkit-app-region: no-drag;
+}

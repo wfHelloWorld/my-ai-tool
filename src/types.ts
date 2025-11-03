@@ -85,7 +85,7 @@ export interface AppConfig {
 
 export const DEFAULT_CONFIG: AppConfig = {
   language: "zh",
-  fontSize: 14,
+  fontSize: 1.00,
   DASHSCOPE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
   DEEPSEEK_URL: "https://api.deepseek.com",
 };

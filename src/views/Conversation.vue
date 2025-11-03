@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-wrap min-w-0">
-    <div class="w-[100%] h-[5%] bg-slate-50 border-b border-gray-300 flex items-center px-3 justify-between"
+    <div class="w-[100%] h-[5%] bg-slate-50 border-b border-gray-300 flex items-center px-3 justify-between drag-region"
       v-if="conversation">
       <h3 class="font-semibold text-gray-900 w-2/3 truncate">
         {{ conversation.title }}

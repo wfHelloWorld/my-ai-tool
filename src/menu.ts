@@ -137,17 +137,41 @@ const createMenu = (mainWindow: BrowserWindow) => {
           label: t("menu.view.toggleDevTools"),
         },
         { type: "separator" },
+        // 自定义缩放：使用 zoomLevel（底数 1.2），避免某些倍率不生效
         {
-          role: "resetZoom",
           label: t("menu.view.resetZoom"),
+          accelerator: "CmdOrCtrl+0",
+          click: () => {
+            const level = 0; // 100%
+            mainWindow.webContents.setZoomLevel(level);
+            const f = mainWindow.webContents.getZoomFactor();
+            void configManager.update({ fontSize: f });
+            mainWindow.webContents.send("zoom-factor-changed", f);
+          },
         },
         {
-          role: "zoomIn",
           label: t("menu.view.zoomIn"),
+          accelerator: "CmdOrCtrl+=",
+          click: () => {
+            const currentLevel = mainWindow.webContents.getZoomLevel();
+            const nextLevel = Math.min(currentLevel + 1, 10);
+            mainWindow.webContents.setZoomLevel(nextLevel);
+            const f = mainWindow.webContents.getZoomFactor();
+            void configManager.update({ fontSize: f });
+            mainWindow.webContents.send("zoom-factor-changed", f);
+          },
         },
         {
-          role: "zoomOut",
           label: t("menu.view.zoomOut"),
+          accelerator: "CmdOrCtrl+-",
+          click: () => {
+            const currentLevel = mainWindow.webContents.getZoomLevel();
+            const nextLevel = Math.max(currentLevel - 1, -10);
+            mainWindow.webContents.setZoomLevel(nextLevel);
+            const f = mainWindow.webContents.getZoomFactor();
+            void configManager.update({ fontSize: f });
+            mainWindow.webContents.send("zoom-factor-changed", f);
+          },
         },
         { type: "separator" },
         {

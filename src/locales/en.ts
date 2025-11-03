@@ -2,11 +2,12 @@ export default {
   settings: {
     title: "Settings",
     language: "Language",
-    fontSize: "Font Size",
+    fontSize: "Interface Zoom",
     selectLanguage: "Select Language...",
     general: "General",
     models: "Models",
     key: "keys",
+    zoomShortcuts: "Shortcuts: Command + / Command - / Command 0; Windows: Ctrl + / Ctrl - / Ctrl 0",
   },
   contextMenu: {
     deleteConversation: "Delete Conversation",
@@ -16,6 +17,7 @@ export default {
     chinese: "Chinese",
     english: "English",
     newChat: "New Chat",
+    history: "History",
     settings: "Settings",
   },
   menu: {

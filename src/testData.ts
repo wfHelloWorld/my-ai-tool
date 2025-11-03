@@ -37,7 +37,7 @@ export const providers: ProviderProps[] = [
   {
     id: 4,
     name: "qwen-vl-plus",
-    title: "千问识图(为了节约流量请发起新对话)",
+    title: "千问识图qwen-vl-plus(为了节约流量请发起新对话)",
     desc: "识图",
     avatar: "bx:beer",
     createdAt: "2023-12-15T10:30:00Z",

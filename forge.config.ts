@@ -28,7 +28,7 @@ const config: ForgeConfig = {
     // windows 安装程序
     new MakerSquirrel({
       // 应用信息
-      name: 'VChat',
+      name: 'My-AI-Tools',
       // 开发者需完善：authors、description、iconUrl（远程图标地址，可选）
       // authors: 'Your Name or Company',
       description: 'A chat application',

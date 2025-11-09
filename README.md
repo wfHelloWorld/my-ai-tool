@@ -18,6 +18,11 @@ npm run make
 # 3 发布
 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run publish`
 
+# Version: 1.0.4
+- 历史界面视口调整
+- 新增固定顶部可拖拽区域(主要是针对macOS的窗口拖拽)
+- 添加图片的预览的修改
+
 
 # Version: 1.0.3
 

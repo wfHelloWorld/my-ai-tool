@@ -2,61 +2,65 @@
   <!-- <div>MessageInput</div> -->
   <div class="w-full">
     <!-- 输入组件 -->
-    <div class="flex items-center justify-center">
-      <div class="w-[80%] flex items-center justify-center">
+    <div class="flex justify-center">
+      <div class="w-[80%] flex items-start">
         <!-- 用 Icon代替问价上传组件 -->
-        <input
-          type="file"
-          accept="image/*"
-          class="hidden"
-          ref="fileInput"
-          @change="handleImageUpload"
-        />
+        <input type="file" accept="image/*" class="hidden" ref="fileInput" @change="handleImageUpload" />
         <!-- 图片预览 -->
         <!-- elementPlus文字提示组件,展示选择的图片 -->
-        <el-tooltip placement="top" effect="light">
-          <template #content>
-            <div v-if="imagePreview" class="mb-2 relative flex items-center">
-              <img :src="imagePreview" alt="Preview" class="h-50" />
+        <div class="self-start">
+          <el-tooltip placement="top" effect="light">
+            <template #content>
+              <!-- <div v-if="imagePreview" class="mb-2 relative flex items-center">
+                <img :src="imagePreview" alt="Preview" class="h-50" />
+              </div> -->
+              <el-text class="mx-1" type="info" size="small">文件大小不超过7M</el-text>
+            </template>
+            <Icon icon="radix-icons:image" width="24" height="24" :class="[
+            'mr-2',
+            disabled
+              ? 'text-gray-300 cursor-not-allowed'
+              : 'text-gray-400 cursor-pointer hover:text-gray-600',
+          ]" @click="triggerFileInput" />
+          </el-tooltip>
+        </div>
+
+        <!-- 在 el-input 内部显示图片缩略图（覆盖在内侧顶部），并在悬停时显示大图 tooltip -->
+        <div class="relative flex-1 input-with-thumb self-start" :class="{ 'has-thumb': !!imagePreview }" ref="inputWithThumb">
+          <el-input
+            v-model="input"
+            type="textarea"
+            :autosize="{ minRows: 1, maxRows: 3 }"
+            placeholder="Please input"
+            :disabled="props.disabled"
+            @keydown="handleKeydown"
+          >
+          </el-input>
+
+          <div v-if="imagePreview" class="input-thumb-wrapper" :style="{ transform: `translateY(-${textareaScrollTop}px)` }">
+            <div class="thumb-box">
+              <el-tooltip placement="top" effect="light">
+                <template #content>
+                  <img :src="imagePreview" alt="Preview" class="max-w-[300px] max-h-[300px]" />
+                </template>
+                <img :src="imagePreview" alt="thumb" class="input-thumb" />
+              </el-tooltip>
+              <button
+                class="thumb-box-remove no-drag"
+                @click.stop="removeImage"
+                title="移除图片"
+                aria-label="移除图片"
+              >
+                <Icon icon="radix-icons:cross-2" width="12" height="12" />
+              </button>
             </div>
-            <el-text class="mx-1" type="info" size="small">文件大小不超过7M</el-text>
-          </template>
-          <Icon
-            icon="radix-icons:image"
-            width="24"
-            height="24"
-            :class="[
-              'mr-2',
-              disabled
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-400 cursor-pointer hover:text-gray-600',
-            ]"
-            @click="triggerFileInput"
-          />
-        </el-tooltip>
-        <el-input
-          v-model="input"
-          type="textarea"
-          :autosize="{ minRows: 1, maxRows: 4 }"
-          placeholder="Please input"
-          :disabled="props.disabled"
-          @keydown="handleKeydown"
-        >
-        </el-input>
-        <el-button
-          type="success"
-          :loading="isLoading"
-          @click="onCreate"
-          :disabled="props.disabled"
-        >
+          </div>
+        </div>
+
+        <el-button type="success" :loading="isLoading" @click="onCreate" :disabled="props.disabled" class="self-start">
           <!-- 发送 -->
           {{ $t("common.send") }}
-          <Icon
-            icon="radix-icons:paper-plane"
-            width="15"
-            height="15"
-            class="ml-1"
-          />
+          <Icon icon="radix-icons:paper-plane" width="15" height="15" class="ml-1" />
         </el-button>
       </div>
     </div>
@@ -64,7 +68,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import { ref, onMounted, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
 import { ElMessage } from "element-plus";
 
@@ -159,6 +163,87 @@ const handleKeydown = (event: KeyboardEvent) => {
     onCreate();
   }
 };
+
+const removeImage = () => {
+  selectFirstImage = null;
+  imagePreview.value = '';
+  // 清空 input[type=file] 的值，允许重新选择相同文件
+  if (fileInput.value) {
+    fileInput.value.value = '';
+  }
+};
+
+// 让缩略图视觉上跟随 textarea 内容滚动
+const inputWithThumb = ref<HTMLElement | null>(null);
+const textareaScrollTop = ref(0);
+
+onMounted(() => {
+  nextTick(() => {
+    const textarea = inputWithThumb.value?.querySelector('textarea.el-textarea__inner') as HTMLTextAreaElement | null;
+    if (textarea) {
+      const onScroll = (e: Event) => {
+        const t = e.target as HTMLTextAreaElement;
+        textareaScrollTop.value = t.scrollTop;
+      };
+      textarea.addEventListener('scroll', onScroll);
+    }
+  });
+});
 </script>
 
-<style></style>
+<style scoped>
+.input-with-thumb {
+  position: relative;
+  overflow: hidden; /* 保证缩略图被输入框边界裁切 */
+}
+.input-with-thumb.has-thumb :deep(.el-textarea__inner) {
+  padding-top: 56px; /* 40px 缩略图 + 16px 间距 */
+}
+
+.input-thumb-wrapper {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  pointer-events: none; /* 保证点击非图片区域可以聚焦输入框 */
+  will-change: transform; /* 平滑跟随滚动 */
+}
+
+.input-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  pointer-events: auto; /* 图片本身可交互（tooltip、点击） */
+}
+
+.thumb-box {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.thumb-box-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.thumb-box-remove:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+</style>

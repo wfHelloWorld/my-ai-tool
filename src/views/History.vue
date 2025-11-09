@@ -1,7 +1,7 @@
 <template>
   <div class="h-full">
     <!-- 先复用 ConversationList，后续再细化样式与行为 -->
-    <div class="h-full overflow-y-auto p-4">
+    <div class="h-full overflow-y-auto overflow-x-hidden p-4 mt-[28px]">
       <ConversationList />
     </div>
   </div>

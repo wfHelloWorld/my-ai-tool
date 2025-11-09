@@ -15,6 +15,11 @@ import Home from "./views/Home.vue";
 import Conversation from "./views/Conversation.vue";
 import Settings from "./views/Settings.vue";
 import History from "./views/History.vue";
+import Vision from "./views/Vision.vue";
+import ImageGen from "./views/ImageGen.vue";
+import Voice from "./views/Voice.vue";
+import Video from "./views/Video.vue";
+import Download from "./views/Download.vue";
 import { useConversationStore } from "./stores/useConversationStore";
 import 'highlight.js/styles/1c-light.css'
 import { i18n, initI18n } from "./i18n";
@@ -26,6 +31,11 @@ const routes = [
   { path: "/conversation/:id", component: Conversation },
   { path: "/settings", component: Settings },
   { path: "/history", component: History },
+  { path: "/vision", component: Vision },
+  { path: "/image", component: ImageGen },
+  { path: "/voice", component: Voice },
+  { path: "/video", component: Video },
+  { path: "/download", component: Download },
 ];
 
 const router = createRouter({

@@ -16,9 +16,14 @@ export default {
     send: "发送",
     chinese: "中文",
     english: "English",
-    newChat: "新建",
+    chat: "聊天",
     history: "历史",
     settings: "设置",
+    vision: "识图",
+    image: "生图",
+    voice: "语音",
+    video: "视频",
+    download: "下载",
   },
   menu: {
     app: {

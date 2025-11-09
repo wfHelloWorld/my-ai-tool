@@ -16,9 +16,15 @@ export default {
     send: "Send",
     chinese: "Chinese",
     english: "English",
-    newChat: "New Chat",
+    // replace newChat with chat and add new menu items
+    chat: "Chat",
     history: "History",
     settings: "Settings",
+    vision: "Vision",
+    image: "Image Gen",
+    voice: "Voice",
+    video: "Video",
+    download: "Download",
   },
   menu: {
     app: {

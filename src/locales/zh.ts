@@ -8,6 +8,16 @@ export default {
     models: "模型",
     key: "密钥",
     zoomShortcuts: "快捷键：Command + / Command - / Command 0；Windows：Ctrl + / Ctrl - / Ctrl 0",
+    // 新增：图片缓存相关 i18n
+    imageCache: "图片缓存",
+    cacheSize: "缓存大小",
+    cacheDir: "缓存目录",
+    clearCache: "清除缓存",
+    unknown: "未知",
+    clearCacheSuccess: "已清理 {count} 个文件，释放 {size} 空间",
+    clearCacheFailed: "清理缓存失败",
+    // 新增：打开缓存目录失败提示
+    openCacheDirFailed: "打开缓存目录失败",
   },
   contextMenu: {
     deleteConversation: "删除对话",
@@ -24,6 +34,8 @@ export default {
     voice: "语音",
     video: "视频",
     download: "下载",
+    // 新增：消息输入框提示
+    imageInputHint: "点击该图标或者将图片拖入输入框",
   },
   menu: {
     app: {

@@ -38,6 +38,29 @@
             </el-text>
           </div>
         </div>
+
+        <!-- 图片缓存：显示大小与清理按钮，并显示实际缓存目录路径 -->
+        <div class="mb-6">
+          <label class="block mb-1 font-medium select-none">
+            {{ $t("settings.imageCache") }}
+          </label>
+          <div class="flex items-center gap-3">
+            <el-text class="select-none" size="large">
+              {{ formatBytes(cacheSize) }}
+            </el-text>
+            <el-button type="warning" @click="onClearCache">
+              {{ $t("settings.clearCache") }}
+            </el-button>
+          </div>
+          <div class="mt-2">
+            <el-text class="mx-1 select-none" type="info" size="small">
+              {{ $t("settings.cacheDir") }}：
+              <el-link type="primary" :underline="true" @click="onOpenCacheDir">
+                {{ imagesDirPath || $t("settings.unknown") }}
+              </el-link>
+            </el-text>
+          </div>
+        </div>
       </div>
     </el-tab-pane>
 
@@ -111,8 +134,11 @@ import { setI18nLanguage } from "../i18n/index";
 import type { AppConfig } from "../types";
 import { Icon } from "@iconify/vue";
 import { useI18nStore } from "../stores/useI18nStore";
+import { ElMessage } from "element-plus";
+import { useI18n } from "vue-i18n";
 
 const i18nStore = useI18nStore();
+const { t } = useI18n();
 
 const activeName = ref("general");
 
@@ -135,6 +161,52 @@ const currentConfig = reactive<AppConfig>({
 // 窗口缩放比例（通过 Electron 控制），默认 1
 const zoom = ref(1);
 
+// 图片缓存：目录路径与大小（字节）
+const imagesDirPath = ref("");
+const cacheSize = ref(0);
+
+const formatBytes = (bytes: number): string => {
+  if (!bytes || bytes <= 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+  const value = bytes / Math.pow(1024, i);
+  return `${value.toFixed(value >= 100 ? 0 : value >= 10 ? 1 : 2)} ${units[i]}`;
+};
+
+const refreshCacheInfo = async () => {
+  try {
+    imagesDirPath.value = await window.electronAPI.getImagesDirPath();
+  } catch (e) {
+    imagesDirPath.value = "";
+  }
+  try {
+    cacheSize.value = await window.electronAPI.getImagesCacheSize();
+  } catch (e) {
+    cacheSize.value = 0;
+  }
+};
+
+const onClearCache = async () => {
+  try {
+    const result = await window.electronAPI.clearImagesCache();
+    await refreshCacheInfo();
+    ElMessage.success(t("settings.clearCacheSuccess", { count: result.removedFiles, size: formatBytes(result.freedBytes) }));
+  } catch (e) {
+    ElMessage.error(t("settings.clearCacheFailed"));
+  }
+};
+
+const onOpenCacheDir = async () => {
+  try {
+    const res = await window.electronAPI.openImagesDir();
+    if (!res || !res.success) {
+      ElMessage.error(t("settings.openCacheDirFailed"));
+    }
+  } catch (e) {
+    ElMessage.error(t("settings.openCacheDirFailed"));
+  }
+};
+
 // 页面加载时初始化配置与缩放
 onMounted(async () => {
   try {
@@ -152,6 +224,8 @@ onMounted(async () => {
       zoom.value = factor;
       currentConfig.fontSize = factor;
     });
+    // 初始化缓存信息
+    await refreshCacheInfo();
   } catch (error) {
     console.error("获取配置失败:", error);
   }

@@ -1,7 +1,7 @@
 {
   "name": "my-ai-tool",
   "productName": "my-ai-tool",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {

@@ -14,6 +14,22 @@ contextBridge.exposeInMainWorld("electronAPI", {
 
   getFilePath: (file: File) => webUtils.getPathForFile(file),
 
+  // 优先使用原生路径；若无原生路径（例如压缩后新建的 File），则将文件内容保存到用户目录并返回路径
+  ensureImageStored: async (file: File): Promise<string> => {
+    const nativePath = webUtils.getPathForFile(file);
+    if (nativePath) {
+      // 将原生文件复制到用户目录，保证后续访问稳定
+      const newPath = await ipcRenderer.invoke("copy-image-to-user-dir", nativePath);
+      return newPath;
+    }
+    // 无原生路径：读取内容并保存到用户目录
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    const filename = file.name || `image-${Date.now()}.png`;
+    const savedPath = await ipcRenderer.invoke("save-image-blob", { base64, filename });
+    return savedPath;
+  },
+
   copyImageToUserDir: (sourcePath: string) =>
     ipcRenderer.invoke("copy-image-to-user-dir", sourcePath),
 
@@ -37,6 +53,20 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // 从右键菜单触发删除聊天
   onDeleteConversation: (callback: (id: number) => void) =>
     ipcRenderer.on("delete-conversation", (_event, id) => callback(id)),
+
+  // 缓存：获取 images 目录大小（字节）
+  getImagesCacheSize: async (): Promise<number> =>
+    ipcRenderer.invoke("get-images-cache-size"),
+  // 缓存：清空 images 目录
+  clearImagesCache: async (): Promise<{ removedFiles: number; freedBytes: number }> =>
+    ipcRenderer.invoke("clear-images-cache"),
+  // 获取 images 目录绝对路径（便于在设置页展示与调试）
+  getImagesDirPath: async (): Promise<string> =>
+    ipcRenderer.invoke("get-images-dir-path"),
+
+  // 打开 images 目录（系统文件管理器）
+  openImagesDir: async (): Promise<{ success: boolean; error: string | null }> =>
+    ipcRenderer.invoke("open-images-dir"),
 
   // 缩放控制
   getZoomFactor: () => ipcRenderer.invoke("get-zoom-factor"),

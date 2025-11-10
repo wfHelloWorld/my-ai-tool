@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain } from 'electron';
+import { BrowserWindow, ipcMain, shell } from 'electron';
 import { ChatService } from './chatService';
 import { FileService } from './fileService';
 import { configManager } from '../config';
@@ -50,6 +50,38 @@ export class IpcService {
         return await this.fileService.copyImageToUserDir(sourcePath);
       }
     );
+
+    // 保存渲染进程传来的图片 base64 到用户目录
+    ipcMain.handle(
+      "save-image-blob",
+      async (event, payload: { base64: string; filename: string }) => {
+        const { base64, filename } = payload;
+        return await this.fileService.saveImageFromBase64(base64, filename);
+      }
+    );
+
+    // 获取 images 缓存目录大小（字节）
+    ipcMain.handle("get-images-cache-size", async () => {
+      return await this.fileService.getImagesCacheSize();
+    });
+
+    // 清空 images 缓存目录（保留目录）
+    ipcMain.handle("clear-images-cache", async () => {
+      return await this.fileService.clearImagesCache();
+    });
+
+    // 获取 images 目录绝对路径（便于在设置页展示与调试）
+    ipcMain.handle("get-images-dir-path", async () => {
+      return this.fileService.getImagesDirPath();
+    });
+
+    // 打开 images 目录（使用系统文件管理器）
+    ipcMain.handle("open-images-dir", async () => {
+      const dir = this.fileService.getImagesDirPath();
+      const result = await shell.openPath(dir);
+      // shell.openPath 返回空字符串表示成功；否则返回错误信息
+      return { success: result === "", error: result || null };
+    });
   }
 
   /**

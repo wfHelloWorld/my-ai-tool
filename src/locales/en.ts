@@ -8,6 +8,16 @@ export default {
     models: "Models",
     key: "keys",
     zoomShortcuts: "Shortcuts: Command + / Command - / Command 0; Windows: Ctrl + / Ctrl - / Ctrl 0",
+    // Added: image cache i18n
+    imageCache: "Image Cache",
+    cacheSize: "Cache Size",
+    cacheDir: "Cache Directory",
+    clearCache: "Clear Cache",
+    unknown: "Unknown",
+    clearCacheSuccess: "Cleared {count} files, freed {size}.",
+    clearCacheFailed: "Failed to clear cache",
+    // Added: open cache directory failure
+    openCacheDirFailed: "Failed to open cache directory",
   },
   contextMenu: {
     deleteConversation: "Delete Conversation",
@@ -25,6 +35,8 @@ export default {
     voice: "Voice",
     video: "Video",
     download: "Download",
+    // Added: message input hint
+    imageInputHint: "Click the icon or drag an image into the input box",
   },
   menu: {
     app: {

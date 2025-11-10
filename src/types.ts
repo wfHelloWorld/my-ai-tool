@@ -16,7 +16,7 @@ export interface ProviderProps {
   createdAt: string;
   updatedAt: string;
   label: string;
-  type: string; // 分类 文字,识图等
+  type: "chat" | "vision" | "imageGen" | "audio" | "video"; // 分类 文字,识图等
 }
 
 export type MessageStatus = "loading" | "streaming" | "finished";

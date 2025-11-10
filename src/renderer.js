@@ -12,6 +12,7 @@ import "element-plus/dist/index.css";
 // vue router
 import { createRouter, createMemoryHistory } from "vue-router";
 import Home from "./views/Home.vue";
+// 路径修正：确认 Conversation.vue 存在于 ./views/ 目录
 import Conversation from "./views/Conversation.vue";
 import Settings from "./views/Settings.vue";
 import History from "./views/History.vue";

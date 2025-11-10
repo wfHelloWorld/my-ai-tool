@@ -2,6 +2,8 @@ import { defineStore } from "pinia";
 import { ProviderProps } from "../types";
 import { db, initProviders } from "../db";
 
+export type ProviderType = ProviderProps["type"];
+
 export interface providerStore {
   items: ProviderProps[];
 }
@@ -10,6 +12,21 @@ export const useProvidersStore = defineStore("provider", {
     return {
       items: [],
     };
+  },
+  getters: {
+    // 分类 getters（保留原有 items，不复制状态）
+    chats: (state) => state.items.filter((p) => p.type === "chat"),
+    visions: (state) => state.items.filter((p) => p.type === "vision"),
+    imageGens: (state) => state.items.filter((p) => p.type === "imageGen"),
+    audios: (state) => state.items.filter((p) => p.type === "audio"),
+    videos: (state) => state.items.filter((p) => p.type === "video"),
+    groupedByType: (state) => ({
+      chat: state.items.filter((p) => p.type === "chat"),
+      vision: state.items.filter((p) => p.type === "vision"),
+      imageGen: state.items.filter((p) => p.type === "imageGen"),
+      audio: state.items.filter((p) => p.type === "audio"),
+      video: state.items.filter((p) => p.type === "video"),
+    }),
   },
   actions: {
     async initProvidersStore() {

@@ -14,7 +14,7 @@
       <MessageList :messages="filteredMessages" ref="messageListRef" />
     </div>
     <div class="w-[100%] mx-auto h-[15%] flex items-center">
-      <MessageInput @create="sendNewMessage" v-model="inputValue" :disabled="messagesStore.isMessageLoading" />
+      <MessageInputChat @create="sendNewMessage" v-model="inputValue" :disabled="messagesStore.isMessageLoading" />
     </div>
   </div>
 </template>
@@ -27,7 +27,7 @@ import {
   MessageListInstance,
 } from "../types";
 import MessageList from "../components/MessageList.vue";
-import MessageInput from "../components/MessageInput.vue";
+import MessageInputChat from "../components/MessageInputChat.vue";
 import { useRoute } from "vue-router";
 import {
   ref,

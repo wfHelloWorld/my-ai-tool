@@ -21,7 +21,7 @@ export const providers: ProviderProps[] = [
     createdAt: "2023-12-15T10:30:00Z",
     updatedAt: "2024-05-20T09:45:00Z",
     label: "阿里云百炼",
-    type: "对话",
+    type: "chat",
   },
   {
     id: 3,
@@ -32,7 +32,7 @@ export const providers: ProviderProps[] = [
     createdAt: "2023-12-15T10:30:00Z",
     updatedAt: "2024-05-20T09:45:00Z",
     label: "阿里云百炼",
-    type: "对话",
+    type: "chat",
   },
   {
     id: 4,
@@ -43,7 +43,7 @@ export const providers: ProviderProps[] = [
     createdAt: "2023-12-15T10:30:00Z",
     updatedAt: "2024-05-20T09:45:00Z",
     label: "阿里云百炼",
-    type: "识图",
+    type: "vision",
   },
   {
     id: 5,
@@ -54,17 +54,17 @@ export const providers: ProviderProps[] = [
     createdAt: "2025-08-27T08:00:00Z",
     updatedAt: "2025-08-27T08:00:00Z",
     label: "deepseek",
-    type: "对话",
+    type: "chat",
   },
   {
     id: 6,
     name: "deepseek-reasoner",
-    title: "deepseek-reasoner(无联网,深入思考)",
+    title: "deepseek-reasoner(无联网,深入思考模式)",
     desc: "deepseek官方接口",
     avatar: "bx:basketball",
     createdAt: "2025-08-27T08:00:00Z",
     updatedAt: "2025-08-27T08:00:00Z",
     label: "deepseek",
-    type: "对话",
+    type: "chat",
   },
 ];

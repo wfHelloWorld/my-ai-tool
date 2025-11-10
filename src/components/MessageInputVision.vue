@@ -18,7 +18,7 @@
             </template>
             <Icon icon="radix-icons:image" width="24" height="24" :class="[
             'mr-2',
-            disabled
+            props.disabled
               ? 'text-gray-300 cursor-not-allowed'
               : 'text-gray-400 cursor-pointer hover:text-gray-600',
           ]" @click="triggerFileInput" />
@@ -71,6 +71,8 @@
 import { ref, onMounted, nextTick } from "vue";
 import { Icon } from "@iconify/vue";
 import { ElMessage } from "element-plus";
+// 引入全局类型声明，确保 window.electronAPI 在该文件中可识别
+import "../../interface.d.ts";
 
 /**
  * 用ref绑定input组件的DOM
@@ -147,7 +149,8 @@ const emit = defineEmits<{
 const onCreate = () => {
   if (input.value.trim() === "") return;
   if (selectFirstImage) {
-    const filePath = window.electronAPI.getFilePath(selectFirstImage);
+    // 在浏览器预览中 window.electronAPI 可能不存在，使用可选链避免报错
+    const filePath = window.electronAPI?.getFilePath(selectFirstImage);
     emit("create", input.value, filePath);
   } else {
     emit("create", input.value);

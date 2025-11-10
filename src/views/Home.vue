@@ -7,7 +7,7 @@
       />
     </div>
     <div class="h-[15%] w-full flex items-center justify-center">
-      <MessageInput
+      <MessageInputChat
         @create="createConversation"
         :disabled="currentProdiver === ''"
       />
@@ -21,7 +21,7 @@ import ProviderSelect from "../components/ProviderSelect.vue";
 import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
 import { db } from "../db";
-import MessageInput from "../components/MessageInput.vue";
+import MessageInputChat from "../components/MessageInputChat.vue";
 import { useRouter } from "vue-router";
 import { useConversationStore } from "../stores/useConversationStore";
 import { useProvidersStore } from "../stores/useProviderStore";

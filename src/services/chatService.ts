@@ -41,8 +41,18 @@ export class ChatService {
         };
         this.mainWindow.webContents.send("update-message", content);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("请求失败:", error);
+      // 将错误反馈到渲染进程，结束 loading 并显示错误信息
+      const errMsg = typeof error?.message === 'string' ? error.message : String(error);
+      const content: MessagesStreamData = {
+        messageId,
+        data: {
+          is_end: true,
+          result: `【错误】${errMsg}`,
+        },
+      };
+      this.mainWindow.webContents.send("update-message", content);
     }
   }
 }

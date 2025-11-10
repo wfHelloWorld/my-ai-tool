@@ -163,6 +163,13 @@ const creatingInitialMessage = async () => {
         selectedModel: conversation.value?.selectedModel as string,
         messages: sendedMessage.value,
       });
+    } else {
+      // 找不到供应商，直接把错误写入该条消息并结束 loading
+      await messagesStore.updateMessage(newMessageId, {
+        content: "【错误】未找到所选供应商，请检查设置中的模型与供应商配置。",
+        status: "finished",
+        updatedAt: new Date().toISOString(),
+      });
     }
   }
 };

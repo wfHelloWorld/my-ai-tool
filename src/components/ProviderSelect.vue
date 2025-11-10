@@ -1,28 +1,12 @@
 <template>
-  <el-select
-    v-model="currentModel"
-    placeholder="Select"
-    @change="valuechange"
-    filterable
-    class="w-full"
-  >
+  <el-select v-model="currentModel" placeholder="Select" @change="valuechange" filterable class="w-full">
     <template #label="{ label }">
       <span class="flex items-center space-x-2">
-        <Icon
-          v-if="avatar"
-          :icon="avatar"
-          width="24"
-          height="24"
-        />
+        <Icon v-if="avatar" :icon="avatar" width="24" height="24" />
         <span>{{ label }}</span>
       </span>
     </template>
-    <el-option
-      v-for="item in providers"
-      :key="item.id"
-      :label="item.title"
-      :value="`${item.id}/${item.name}`"
-    >
+    <el-option v-for="item in providers" :key="item.id" :label="item.title" :value="`${item.id}/${item.name}`">
       <template #default>
         <span class="flex items-center space-x-2">
           <Icon :icon="item.avatar as string" width="24" height="24" />
@@ -37,26 +21,52 @@
 <script lang="ts" setup>
 import { ProviderProps } from "src/types";
 import { Icon } from "@iconify/vue";
-import { computed, watch } from "vue";
+import { computed, watch, onMounted } from "vue";
 import { useProvidersStore } from "../stores/useProviderStore";
 import { useRoute } from "vue-router";
 const providersStore = useProvidersStore();
 const route = useRoute();
-
-// 根据当前路由分类显示对应 providers
+// 根据当前路由在组件内使用 items 做一次独立筛选
 const providers = computed(() => {
+  const items = providersStore.items || [];
   const path = route.path;
-  if (path.startsWith("/vision")) return providersStore.visions;
-  if (path.startsWith("/image")) return providersStore.imageGens;
-  if (path.startsWith("/voice")) return providersStore.audios;
-  if (path.startsWith("/video")) return providersStore.videos;
-  // 默认聊天 (home界面)
-  return providersStore.chats;
+  let targetType: ProviderProps["type"] = "chat";
+  if (path.startsWith("/vision")) targetType = "vision";
+  else if (path.startsWith("/image")) targetType = "imageGen";
+  else if (path.startsWith("/voice")) targetType = "audio";
+  else if (path.startsWith("/video")) targetType = "video";
+
+  // 兼容旧数据：如果 type 缺失或不在允许范围内，按名称推断（默认 chat）
+  const allowed: ProviderProps["type"][] = ["chat", "vision", "imageGen", "audio", "video"];
+  const normalize = (p: ProviderProps): ProviderProps["type"] => {
+    const t = (p as any).type as ProviderProps["type"];
+    if (t && allowed.includes(t)) return t;
+    const name = (p.name || "").toLowerCase();
+    if (name.includes("vl") || name.includes("vision")) return "vision";
+    return "chat";
+  };
+
+  const filtered = items.filter((p) => normalize(p) === targetType);
+  if (filtered.length === 0 && items.length > 0) {
+    console.warn(
+      `[ProviderSelect] Fallback: type=${targetType} 没有匹配项，暂时显示全部 items。请检查 providers 的 type 字段。`,
+      items.map((i) => ({ id: i.id, name: i.name, type: (i as any).type }))
+    );
+    return items;
+  }
+  return filtered;
 });
 
-// const data = defineProps<{
-//   items: ProviderProps[];
-// }>();
+// 组件挂载时，若还未初始化，则主动初始化，确保打包版也能显示模型
+onMounted(async () => {
+  try {
+    if (!providersStore.items || providersStore.items.length === 0) {
+      await providersStore.initProvidersStore();
+    }
+  } catch (err) {
+    console.warn("ProviderSelect init failed:", err);
+  }
+});
 
 const valuechange = (val: string) => {
   console.log("选中值:", val);

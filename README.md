@@ -12,13 +12,14 @@ win：
 set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ && npm run package
 # 2. make 命令
 npm run make
+ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run make 
 # 结果：生成完整的安装包，需要安装完毕以后使用
 
 
 # 3 发布
 `ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run publish`
 
-# Version: 1.0.4(未发布)
+# Version: 1.0.4
 - 历史界面视口调整
 - 新增固定顶部可拖拽区域(主要是针对macOS的窗口拖拽)
 - 添加图片的预览的修改

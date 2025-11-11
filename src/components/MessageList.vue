@@ -53,13 +53,13 @@
             <!-- 图片预览 -->
             <img
               v-if="message.firstImagePath"
-              :src="`safe-file://${message.firstImagePath}`"
+              :src="toSafeFileUrl(message.firstImagePath)"
               alt="messageImage"
               class="h-50 object-cover rounded block"
             />
             <img
               v-if="message.lastImagePath"
-              :src="`safe-file://${message.lastImagePath}`"
+              :src="toSafeFileUrl(message.lastImagePath)"
               alt="messageImage"
               class="h-50 object-cover rounded block"
             />
@@ -154,6 +154,13 @@ const plugins = [
   markdownItCopyButton, // 自定义的复制按钮插件
 ];
 defineProps<{ messages: MessageProps[] }>();
+
+// 统一构造跨平台安全的图片地址（Windows/macOS 都适用）
+function toSafeFileUrl(localPath: string) {
+  if (!localPath) return "";
+  // 在渲染进程侧进行一次编码，避免路径中的空格或中文导致 URL 解析异常
+  return `safe-file://${encodeURIComponent(localPath)}`;
+}
 
 function copyMessageContent(content: string) {
   if (!content) return;

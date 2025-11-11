@@ -1,6 +1,8 @@
-import { protocol, net } from 'electron';
+import { protocol } from 'electron';
 import { lookup } from 'mime-types';
 import url from 'url';
+import fs from 'fs/promises';
+import path from 'node:path';
 
 /**
  * 协议处理服务，负责处理自定义协议
@@ -19,14 +21,26 @@ export class ProtocolService {
    */
   private registerSafeFileProtocol() {
     protocol.handle("safe-file", async (request) => {
-      const filePath = decodeURIComponent(
+      // 取出自定义协议后的原始本地路径，并进行解码与规范化（Windows 下处理反斜杠与盘符）
+      const rawPath = decodeURIComponent(
         request.url.slice("safe-file://".length)
       );
-      
-      // 使用url和net直接访问本地文件
-      const newFilePath = url.pathToFileURL(filePath).toString();
-      console.log(newFilePath);
-      return net.fetch(newFilePath);
+      const normalizedPath = path.normalize(rawPath);
+
+      // 读取文件并返回响应，避免在不同平台上对 file:// 的支持差异
+      try {
+        const data = await fs.readFile(normalizedPath);
+        const mimeType = lookup(normalizedPath) || 'application/octet-stream';
+        return new Response(data, {
+          headers: {
+            'Content-Type': String(mimeType),
+          },
+        });
+      } catch (err: any) {
+        const message = err?.message || 'File not found';
+        // 兜底：返回 404 与简短说明，便于调试
+        return new Response(message, { status: 404 });
+      }
     });
   }
 }

@@ -12,12 +12,65 @@ win：
 set ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ && npm run package
 # 2. make 命令
 npm run make
-ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run make 
 # 结果：生成完整的安装包，需要安装完毕以后使用
+$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/"; npm run make
 
+## Windows 打包（make）指令与注意事项
 
-# 3 发布
-`ELECTRON_MIRROR=https://npmmirror.com/mirrors/electron/ npm run publish`
+- 标准打包（生成 Zip 与 Squirrel 安装包）：
+  `$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/" ; npm run make`
+
+- 仅构建 Zip（便于快速验证打包）：
+  `$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/" ; npm run make -- --targets=@electron-forge/maker-zip --verbose`
+
+- 仅构建 Squirrel 安装包（Windows 安装包）：
+  `$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/" ; npm run make -- --targets=@electron-forge/maker-squirrel --verbose`
+
+### 预备条件（Windows）
+- Node.js 版本建议使用 v24.5.0（通过 nvm-windows 管理更稳妥）。
+- 依赖安装时不要使用 `--omit=optional`，避免漏装 Windows 平台的原生可选依赖。
+- 建议先执行：`$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/" ; npm install`
+
+### 常见故障与处理
+- 如果报错 `Cannot find module @rollup/rollup-win32-x64-msvc` 或 `Cannot find native binding`：
+  1) 删除 `node_modules` 与 `package-lock.json`，然后重新执行：
+     `$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/" ; npm install`
+  2) 若仍失败，手动安装对应的 Windows 平台二进制包（版本与当前依赖一致）：
+     `npm i -D @rollup/rollup-win32-x64-msvc@4.52.5 lightningcss-win32-x64-msvc@1.30.2 @tailwindcss/oxide-win32-x64-msvc@4.1.16`
+
+### 构建产物位置
+- Zip：`out/make/zip/win32/x64/`
+- Squirrel：`out/make/squirrel.windows/x64/`
+  - 示例：`Vchat-1.0.3 Setup.exe`、`my_ai_tool-1.0.3-full.nupkg`、`RELEASES`
+
+# 发布到 GitHub Releases
+发布到 GitHub Releases。请在 GitHub 创建仓库，并准备发布令牌（`GH_TOKEN` 或 `GITHUB_TOKEN`，权限至少含 `repo`、`workflow`）。确保在项目目录 `my-new-app` 内执行。
+
+### 发布前准备
+- 在 `.env` 中配置：
+  - `GITHUB_OWNER`（GitHub 用户或组织）
+  - `GITHUB_REPO`（仓库名）
+  - `GH_TOKEN` 或 `GITHUB_TOKEN`（至少 `repo`、`workflow` 权限）
+- forge.config.ts 已内置 GitHub Publisher，会从环境变量读取上述配置。
+
+### 标准发布命令（加载 .env 并发布）
+PowerShell：
+```
+$env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/"
+$envFile = "$PWD/.env"
+Get-Content $envFile | ForEach-Object {
+  if ($_ -match '^[ \t]*#') { return }
+  if ($_ -match '^[ \t]*$') { return }
+  if ($_ -match '^[ \t]*([^=]+)[ \t]*=[ \t]*(.*)$') {
+    $name = $matches[1].Trim();
+    $value = $matches[2]
+    if ($value.StartsWith('"') -and $value.EndsWith('"')) { $value = $value.Substring(1, $value.Length-2) }
+    if ($value.StartsWith("'") -and $value.EndsWith("'")) { $value = $value.Substring(1, $value.Length-2) }
+    $env:$name = $value
+  }
+}
+npm run publish -- --verbose
+```
 
 # Version: 1.0.4
 - 历史界面视口调整

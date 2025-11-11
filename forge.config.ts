@@ -9,15 +9,21 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 import { MakerDMG } from '@electron-forge/maker-dmg'; // mac
 import dotenv from 'dotenv';
 import { PublisherGithub } from '@electron-forge/publisher-github';
+import fs from 'fs';
 dotenv.config();
 
 // 基础打包配置
+// 动态检测 Windows 图标是否存在（避免缺失 .ico 导致 make 失败）
+const winIconPath = './assets/icon.ico';
+const hasWinIcon = fs.existsSync(winIconPath);
+
 const config: ForgeConfig = {
   // npm run package 使用的配置
   packagerConfig: {
     name: 'Vchat',
     asar: true, // 将源码打包成 asar 档案
-    icon: './assets/icon.ico',
+    // Windows 打包图标（.ico）。若缺失则跳过，避免出错。
+    ...(hasWinIcon ? { icon: winIconPath } : {}),
     // 开发者需完善：
     // - name：应用内部名称（建议与 package.json 的 productName 保持一致，便于生成资产命名一致）
     // - icon：应用图标（Windows 用 .ico，macOS 用 .icns 在 MakerDMG 中设置）
@@ -33,7 +39,8 @@ const config: ForgeConfig = {
       // authors: 'Your Name or Company',
       description: 'A chat application',
       // 安装程序配置
-      setupIcon: './assets/icon.ico',  // Windows 安装图标
+      // Windows 安装图标（.ico）。若缺失则不设置，避免 make 失败。
+      ...(hasWinIcon ? { setupIcon: winIconPath } : {}),
       // iconUrl: 'https://raw.githubusercontent.com/<owner>/<repo>/main/assets/icon.ico', // 远程图标URL（可选）
       // 快捷方式设置
       setupExe: 'VChat-Setup.exe',  // 安装程序名称

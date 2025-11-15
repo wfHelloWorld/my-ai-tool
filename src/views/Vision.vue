@@ -1,27 +1,40 @@
 <template>
-  <div class="h-full flex flex-col items-center">
-    <div class="h-[85%] w-[80%] flex items-center justify-center">
-      <ProviderSelect
-        v-model="currentProdiver"
-        @update:model-value="onModelChange"
-      />
-    </div>
-    <div class="h-[15%] w-full flex items-center justify-center">
-      <MessageInputChat
-        @create="createConversation"
-        :disabled="currentProdiver === ''"
-      />
-    </div>
+  <div class="h-full" ref="outerContainer">
+    <el-splitter style="height: 100%">
+      <el-splitter-panel :min="300">
+        <div class="h-full w-[90%] pl-[10%] flex items-center justify-center">
+          <ProviderSelect v-model="currentProdiver" @update:model-value="onModelChange" />
+        </div>
+      </el-splitter-panel>
+      <el-splitter-panel v-model:size="rightPaneSize" :min="260" @update:size="onRightSizeUpdate">
+        <el-splitter layout="vertical" style="height: 100%">
+          <el-splitter-panel size="70%">
+            <div class="h-full flex flex-col">
+              <div class="pt-5 shrink-0"></div>
+              <div class="flex-1 overflow-y-auto px-[5%]">
+                <ConversationList />
+              </div>
+            </div>
+          </el-splitter-panel>
+          <el-splitter-panel>
+            <div class="h-full w-full flex items-center justify-center">
+              <MessageInputChat @create="createConversation" :disabled="currentProdiver === ''" />
+            </div>
+          </el-splitter-panel>
+        </el-splitter>
+      </el-splitter-panel>
+    </el-splitter>
   </div>
+  
 </template>
 
 <script lang="ts" setup>
 import { ProviderProps } from "src/types";
 import ProviderSelect from "../components/ProviderSelect.vue";
-import { Icon } from "@iconify/vue";
 import { computed, onMounted, ref } from "vue";
 import { db } from "../db";
 import MessageInputChat from "../components/MessageInputChat.vue";
+import ConversationList from "../components/ConversationList.vue";
 import { useRouter } from "vue-router";
 import { useConversationStore } from "../stores/useConversationStore";
 import { useProvidersStore } from "../stores/useProviderStore";
@@ -31,7 +44,15 @@ const conversationsStore = useConversationStore();
 
 const router = useRouter();
 const input = ref("");
-const currentProdiver = ref(""); // 选择的数据
+const currentProdiver = ref("");
+const outerContainer = ref<HTMLElement | null>(null);
+const getClampedPercent = (n: number) => Math.max(10, Math.min(90, Math.round(n)));
+const getStoredPercentStr = () => {
+  const raw = localStorage.getItem("homeRightPanePercent");
+  const n = Number(raw);
+  return Number.isFinite(n) ? `${getClampedPercent(n)}%` : "30%";
+};
+const rightPaneSize = ref<string>(getStoredPercentStr());
 
 // const providerItems = ref<ProviderProps[]>([]);
 
@@ -42,6 +63,17 @@ const onModelChange = () => {
 onMounted(async () => {
   // providerItems.value = await db.providers.toArray();
   await providersStore.initProvidersStore();
+  try {
+    const cfg = await window.electronAPI.getConfig();
+    let p = cfg?.homeRightPanePercent ?? 30;
+    p = getClampedPercent(p);
+    const target = `${p}%`;
+    if (rightPaneSize.value !== target) {
+      rightPaneSize.value = target;
+    }
+  } catch (e) {
+    rightPaneSize.value = "30%";
+  }
 });
 
 // 拆分从providerSelect组件中获取的provider信息
@@ -89,6 +121,25 @@ const createConversation = async (question: string, firstImagePath?: string) => 
     ...(copiedFirstImagePath && { firstImagePath: copiedFirstImagePath }),
   });
   router.push(`/conversation/${conversationId}?init=${newMessageId}`);
+};
+
+const onRightSizeUpdate = async (val: string | number) => {
+  try {
+    let percent: number;
+    if (typeof val === "string" && val.endsWith("%")) {
+      percent = Math.max(0, Math.min(100, parseFloat(val)));
+    } else {
+      const w = outerContainer.value?.clientWidth ?? 0;
+      percent = w > 0 ? Math.round((Number(val) / w) * 100) : 30;
+    }
+    percent = getClampedPercent(percent);
+    const target = `${percent}%`;
+    if (rightPaneSize.value !== target) {
+      rightPaneSize.value = target;
+    }
+    localStorage.setItem("homeRightPanePercent", String(percent));
+    await window.electronAPI.updateConfig({ homeRightPanePercent: percent });
+  } catch (e) {}
 };
 </script>
 

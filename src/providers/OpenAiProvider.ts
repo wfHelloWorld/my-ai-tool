@@ -27,6 +27,7 @@ export class OpenAiProvider extends BaseProvider {
       }[],
       enable_search: true,
       stream: true,
+      enable_thinking: true,
     });
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;

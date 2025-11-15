@@ -81,6 +81,7 @@ export interface AppConfig {
   DASHSCOPE_URL?: string;
   DEEPSEEK_API_KEY?: string;
   DEEPSEEK_URL?: string;
+  homeRightPanePercent?: number;
 }
 
 export const DEFAULT_CONFIG: AppConfig = {
@@ -88,4 +89,5 @@ export const DEFAULT_CONFIG: AppConfig = {
   fontSize: 1.00,
   DASHSCOPE_URL: "https://dashscope.aliyuncs.com/compatible-mode/v1",
   DEEPSEEK_URL: "https://api.deepseek.com",
+  homeRightPanePercent: 30,
 };

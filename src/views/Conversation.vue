@@ -1,21 +1,42 @@
 <template>
-  <div class="flex flex-wrap min-w-0">
-    <div class="w-[100%] h-[5%] bg-slate-50 border-b border-gray-300 flex items-center px-3 justify-between drag-region"
-      v-if="conversation">
-      <h3 class="font-semibold text-gray-900 w-2/3 truncate">
-        {{ conversation.title }}
-      </h3>
-      <span class="text-sm text-gray-500 truncate">
-        <!-- {{ new Date(conversation.updatedAt).toLocaleString() }} -->
-        {{ dayjs(conversation.updatedAt).format("YYYY-MM-DD") }}
-      </span>
-    </div>
-    <div class="w-[80%] mx-auto h-[80%] overflow-y-auto pt-2" @scroll="handleScroll">
-      <MessageList :messages="filteredMessages" ref="messageListRef" />
-    </div>
-    <div class="w-[100%] mx-auto h-[15%] flex items-center">
-      <MessageInputChat @create="sendNewMessage" v-model="inputValue" :disabled="messagesStore.isMessageLoading" />
-    </div>
+  <div class="h-full" ref="outerContainer">
+    <el-splitter style="height: 100%">
+      <el-splitter-panel :min="360">
+        <div class="h-full flex flex-col">
+          <div
+            class="w-[100%] h-[5%] bg-slate-50 border-b border-gray-300 flex items-center px-3 justify-between drag-region"
+            v-if="conversation"
+          >
+            <h3 class="font-semibold text-gray-900 w-2/3 truncate">
+              {{ conversation.title }}
+            </h3>
+            <span class="text-sm text-gray-500 truncate">
+              {{ dayjs(conversation.updatedAt).format("YYYY-MM-DD") }}
+            </span>
+          </div>
+          <div class="flex-1 overflow-y-auto px-[5%] pt-2" @scroll="handleScroll">
+            <MessageList :messages="filteredMessages" ref="messageListRef" />
+          </div>
+        </div>
+      </el-splitter-panel>
+      <el-splitter-panel v-model:size="rightPaneSize" :min="260" @update:size="onRightSizeUpdate">
+        <el-splitter layout="vertical" style="height: 100%">
+          <el-splitter-panel size="70%">
+            <div class="h-full flex flex-col">
+              <div class="pt-5 shrink-0"></div>
+              <div class="flex-1 overflow-y-auto px-[5%]">
+                <ConversationList />
+              </div>
+            </div>
+          </el-splitter-panel>
+          <el-splitter-panel>
+            <div class="h-full w-full flex items-center justify-center">
+              <MessageInputChat @create="sendNewMessage" v-model="inputValue" :disabled="messagesStore.isMessageLoading" />
+            </div>
+          </el-splitter-panel>
+        </el-splitter>
+      </el-splitter-panel>
+    </el-splitter>
   </div>
 </template>
 
@@ -28,6 +49,7 @@ import {
 } from "../types";
 import MessageList from "../components/MessageList.vue";
 import MessageInputChat from "../components/MessageInputChat.vue";
+import ConversationList from "../components/ConversationList.vue";
 import { useRoute } from "vue-router";
 import {
   ref,
@@ -65,6 +87,14 @@ const handleScroll = (event: Event) => {
 };
 
 const inputValue = ref("");
+const outerContainer = ref<HTMLElement | null>(null);
+const getClampedPercent = (n: number) => Math.max(10, Math.min(90, Math.round(n)));
+const getStoredPercentStr = () => {
+  const raw = localStorage.getItem("homeRightPanePercent");
+  const n = Number(raw);
+  return Number.isFinite(n) ? `${getClampedPercent(n)}%` : "30%";
+};
+const rightPaneSize = ref<string>(getStoredPercentStr());
 const conversationsStore = useConversationStore();
 const messagesStore = useMessageStore();
 /**
@@ -254,7 +284,37 @@ onMounted(async () => {
       streamContent = "";
     }
   });
+  try {
+    const cfg = await window.electronAPI.getConfig();
+    let p = cfg?.homeRightPanePercent ?? 30;
+    p = getClampedPercent(p);
+    const target = `${p}%`;
+    if (rightPaneSize.value !== target) {
+      rightPaneSize.value = target;
+    }
+  } catch (e) {
+    rightPaneSize.value = "30%";
+  }
 });
+
+const onRightSizeUpdate = async (val: string | number) => {
+  try {
+    let percent: number;
+    if (typeof val === "string" && val.endsWith("%")) {
+      percent = Math.max(0, Math.min(100, parseFloat(val)));
+    } else {
+      const w = outerContainer.value?.clientWidth ?? 0;
+      percent = w > 0 ? Math.round((Number(val) / w) * 100) : 30;
+    }
+    percent = getClampedPercent(percent);
+    const target = `${percent}%`;
+    if (rightPaneSize.value !== target) {
+      rightPaneSize.value = target;
+    }
+    localStorage.setItem("homeRightPanePercent", String(percent));
+    await window.electronAPI.updateConfig({ homeRightPanePercent: percent });
+  } catch (e) {}
+};
 </script>
 
 <style></style>

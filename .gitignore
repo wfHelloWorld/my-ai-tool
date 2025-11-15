@@ -90,3 +90,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# trae
+.trae/documents/

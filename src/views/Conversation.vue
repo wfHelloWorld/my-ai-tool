@@ -59,7 +59,7 @@ import {
   nextTick,
   onBeforeUnmount,
 } from "vue";
-import { db } from "../db";
+import { useProvidersStore } from "../stores/useProviderStore";
 import dayjs from "dayjs";
 import { useConversationStore } from "../stores/useConversationStore";
 import { useMessageStore } from "../stores/useMessageStore";
@@ -97,6 +97,7 @@ const getStoredPercentStr = () => {
 const rightPaneSize = ref<string>(getStoredPercentStr());
 const conversationsStore = useConversationStore();
 const messagesStore = useMessageStore();
+const providersStore = useProvidersStore();
 /**
  * 组合的多组聊天信息,可以将上下文一起发送给大模型
  */
@@ -182,9 +183,9 @@ const creatingInitialMessage = async () => {
 
   // 获取供应商信息
   if (conversation) {
-    const provider = await db.providers
-      .where({ id: conversation.value?.providerId })
-      .first();
+    const provider = providersStore.items.find(
+      (p) => p.id === (conversation.value?.providerId as number)
+    );
     // 调用 start-chat接口,发起一次对话
     if (provider) {
       await window.electronAPI.startChat({
@@ -192,6 +193,7 @@ const creatingInitialMessage = async () => {
         providerName: provider.label,
         selectedModel: conversation.value?.selectedModel as string,
         messages: sendedMessage.value,
+        providerUrl: provider.url,
       });
     } else {
       // 找不到供应商，直接把错误写入该条消息并结束 loading
@@ -318,3 +320,8 @@ const onRightSizeUpdate = async (val: string | number) => {
 </script>
 
 <style></style>
+  try {
+    if (!providersStore.items || providersStore.items.length === 0) {
+      await providersStore.initProvidersStore();
+    }
+  } catch (err) {}

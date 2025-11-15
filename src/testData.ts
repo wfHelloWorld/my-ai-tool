@@ -22,6 +22,7 @@ export const providers: ProviderProps[] = [
     updatedAt: "2024-05-20T09:45:00Z",
     label: "阿里云百炼",
     type: "chat",
+    url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
   },
   {
     id: 3,

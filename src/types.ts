@@ -16,6 +16,7 @@ export interface ProviderProps {
   createdAt: string;
   updatedAt: string;
   label: string;
+  url?: string;
   type: "chat" | "vision" | "imageGen" | "audio" | "video"; // 分类 文字,识图等
 }
 
@@ -46,6 +47,7 @@ export interface CreateChatProps {
   providerName: string;
   selectedModel: string;
   messageId: number;
+  providerUrl?: string;
 }
 
 export interface MessagesStreamData {

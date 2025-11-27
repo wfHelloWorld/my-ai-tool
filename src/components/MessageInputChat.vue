@@ -37,10 +37,10 @@
 
         <!-- 按钮行（下方） -->
         <div class="flex items-center justify-between">
-          <!-- 左侧：导入图片 -->
-          <div>
+          <!-- 左侧：导入图片（simpleMode 下隐藏） -->
+          <div v-if="!props.simpleMode">
             <input type="file" accept="image/*" class="hidden" ref="fileInput" @change="handleImageUpload" />
-            <el-button type="text" @click="triggerFileInput" :disabled="disabled" class="px-2 py-2" circle>
+            <el-button type="text" @click="triggerFileInput" :disabled="props.disabled" class="px-2 py-2" circle>
               <Icon icon="radix-icons:image" width="20" height="20" />
             </el-button>
           </div>
@@ -72,9 +72,11 @@ const imagePreview = ref("");
 const props = withDefaults(
   defineProps<{
     disabled?: boolean;
+    simpleMode?: boolean; // 简化模式：不处理图片，仅发文本
   }>(),
   {
     disabled: false,
+    simpleMode: false,
   }
 );
 
@@ -259,12 +261,16 @@ const emit = defineEmits<{
 
 const onCreate = async () => {
   if (input.value.trim() === "") return;
-  if (selectFirstImage) {
-    // 确保图片存在于用户目录，兼容压缩后新建 File 无原生路径的情况
-    const filePath = await window.electronAPI.ensureImageStored(selectFirstImage);
-    emit("create", input.value, filePath);
-  } else {
+  // simpleMode：不做任何图片处理，避免跨 context 传递 File 导致克隆错误
+  if (props.simpleMode) {
     emit("create", input.value);
+  } else {
+    if (selectFirstImage) {
+      const filePath = await window.electronAPI.ensureImageStored(selectFirstImage);
+      emit("create", input.value, filePath);
+    } else {
+      emit("create", input.value);
+    }
   }
   input.value = ""; // 发送后清空输入框
   selectFirstImage = null; // 清空图片选择

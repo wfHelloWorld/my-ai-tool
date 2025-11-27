@@ -4,6 +4,7 @@ import { FileService } from './fileService';
 import { configManager } from '../config';
 import { CreateChatProps } from '../types';
 import { updateMenu, createContextMenu } from '../menu';
+import { Wanxiang25PreviewProvider } from "../providers/imgGen";
 
 /**
  * IPC服务，负责处理主进程和渲染进程之间的通信
@@ -29,6 +30,7 @@ export class IpcService {
     this.setupConfigHandlers();
     this.setupContextMenuHandlers();
     this.setupZoomHandlers();
+    this.setupImageGenHandlers();
   }
 
   /**
@@ -75,11 +77,10 @@ export class IpcService {
       return this.fileService.getImagesDirPath();
     });
 
-    // 打开 images 目录（使用系统文件管理器）
+    // 打开输出图片目录（系统“下载”目录下的 images 子目录）
     ipcMain.handle("open-images-dir", async () => {
-      const dir = this.fileService.getImagesDirPath();
+      const dir = this.fileService.getDownloadsImagesDirPath();
       const result = await shell.openPath(dir);
-      // shell.openPath 返回空字符串表示成功；否则返回错误信息
       return { success: result === "", error: result || null };
     });
   }
@@ -142,6 +143,40 @@ export class IpcService {
       await configManager.update({ fontSize: effectiveFactor });
       this.mainWindow.webContents.send("zoom-factor-changed", effectiveFactor);
       return effectiveFactor;
+    });
+  }
+
+  /**
+   * 设置生图相关的IPC处理程序（万相2.5预览）
+   */
+  private setupImageGenHandlers() {
+    ipcMain.handle("wan25-preview", async (event, payload) => {
+      try {
+        const cfg = await configManager.getConfig();
+        const apiKey = payload?.apiKey || cfg.DASHSCOPE_API_KEY;
+        const provider = new Wanxiang25PreviewProvider({ apiKey });
+        console.log("[wan25-preview] payload:", {
+          ...payload,
+          apiKey: apiKey ? `${String(apiKey).slice(0, 4)}***${String(apiKey).slice(-4)}` : "<missing>",
+        });
+        const result = await provider.generate(payload, (info) => {
+          try {
+            event.sender.send("wan25-preview-progress", info);
+          } catch (e) {
+            console.warn("[wan25-preview] progress send failed:", String(e));
+          }
+        });
+        console.log("[wan25-preview] result paths:", result);
+        return result;
+      } catch (err) {
+        console.error("[wan25-preview] error:", err);
+        try {
+          event.sender.send("wan25-preview-progress", { stage: "error", message: err instanceof Error ? err.message : String(err) });
+        } catch (e) {
+          console.warn("[wan25-preview] progress send failed in error:", String(e));
+        }
+        throw err;
+      }
     });
   }
 }

@@ -68,4 +68,17 @@ export const providers: ProviderProps[] = [
     label: "deepseek",
     type: "chat",
   },
+  {
+    id: 7,
+    name: "wan2.5-i2i-preview",
+    title: "万相2.5 preview(单图编辑,多参考图生图)",
+    desc: "万相2.5",
+    avatar: "bx:basketball",
+    createdAt: "2025-08-27T08:00:00Z",
+    updatedAt: "2025-08-27T08:00:00Z",
+    label: "deepseek",
+    type: "imageGen",
+    url:"https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+  },
+  
 ];

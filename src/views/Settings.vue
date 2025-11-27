@@ -1,5 +1,5 @@
 <template>
-  <el-tabs v-model="activeName" class="demo-tabs p-4" @tab-click="handleClick">
+  <el-tabs v-model="activeName" class="demo-tabs p-4 h-full flex flex-col" @tab-click="handleClick">
     <el-tab-pane name="general">
       <template #label>
         <!-- 通用设置标签 -->
@@ -61,6 +61,7 @@
             </el-text>
           </div>
         </div>
+
       </div>
     </el-tab-pane>
 
@@ -125,6 +126,21 @@
         </el-collapse>
       </div>
     </el-tab-pane>
+
+    <!-- 版本日志标签（紧随模型设置之后） -->
+    <el-tab-pane name="log">
+      <template #label>
+        <Icon icon="ant-design:file-text-outlined" width="15" height="15" class="pr-0.5" />
+        <span class="select-none">{{ $t("settings.versionLog") }}</span>
+      </template>
+      <div class="demo-collapse p-4 log-pane">
+        <el-scrollbar style="height: 100%">
+          <div class="prose prose-slate prose-headings:my-2 prose-pre:p-0">
+            <vue-markdown :source="logMd" :plugins="plugins" />
+          </div>
+        </el-scrollbar>
+      </div>
+    </el-tab-pane>
   </el-tabs>
 </template>
 
@@ -136,6 +152,15 @@ import { Icon } from "@iconify/vue";
 import { useI18nStore } from "../stores/useI18nStore";
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
+import VueMarkdown from "vue-markdown-render";
+import MarkdownItAnchor from "markdown-it-anchor";
+import markdownItHighlightjs from "markdown-it-highlightjs";
+import "highlight.js/styles/github.css";
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+import typescript from "highlight.js/lib/languages/typescript";
+import css from "highlight.js/lib/languages/css";
+import xml from "highlight.js/lib/languages/xml";
 
 const i18nStore = useI18nStore();
 const { t } = useI18n();
@@ -157,6 +182,19 @@ const currentConfig = reactive<AppConfig>({
   language: "zh",
   fontSize: 1,
 });
+
+// 注册需要的代码高亮语言（与消息列表保持一致）
+hljs.registerLanguage("javascript", javascript);
+hljs.registerLanguage("typescript", typescript);
+hljs.registerLanguage("css", css);
+hljs.registerLanguage("html", xml);
+hljs.registerLanguage("vue", xml);
+
+// Markdown 插件（锚点 + 代码高亮）
+const plugins = [MarkdownItAnchor, markdownItHighlightjs];
+
+// 版本日志内容（运行时加载）
+const logMd = ref("");
 
 // 窗口缩放比例（通过 Electron 控制），默认 1
 const zoom = ref(1);
@@ -226,6 +264,15 @@ onMounted(async () => {
     });
     // 初始化缓存信息
     await refreshCacheInfo();
+
+    // 加载版本日志 Markdown 内容
+    try {
+      const res = await fetch("/src/common/md/log.md?raw");
+      logMd.value = await res.text();
+    } catch (err) {
+      console.error("加载版本日志失败:", err);
+      logMd.value = "# 日志加载失败";
+    }
   } catch (error) {
     console.error("获取配置失败:", error);
   }
@@ -249,11 +296,31 @@ watch(
 </script>
 
 <style scoped>
-.demo-tabs > .el-tabs__content {
+.demo-tabs {
+  /* 让整个 Tabs 组件占满父容器高度 */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* 允许子内容滚动 */
+}
+
+.demo-tabs > :deep(.el-tabs__content) {
+  /* 让内容区撑满并为子项提供伸展空间 */
+  flex: 1;
+  min-height: 0; /* 允许内部滚动 */
+  display: flex; /* 让 pane 可设置为 flex:1 */
   padding: 32px;
   color: #6b778c;
   font-size: 16px;
   font-weight: 600;
+}
+
+/* 让每个 pane 也撑满内容区高度 */
+.demo-tabs :deep(.el-tab-pane) {
+  flex: 1;
+  min-height: 0; /* 允许内部滚动 */
+  display: flex;
+  flex-direction: column;
 }
 
 .demo-collapse {
@@ -269,5 +336,33 @@ watch(
 
 .title-wrapper.is-active {
   color: var(--el-color-primary);
+}
+/* 版本日志模块：限制高度并允许滚动 */
+.log-pane {
+  /* 版本日志容器占满内容区高度，滚动由 el-scrollbar 接管 */
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding-right: 8px; /* 预留滚动条空间，避免文字被遮挡 */
+  -webkit-overflow-scrolling: touch; /* 提升滚动体验（macOS/触控） */
+  overscroll-behavior: contain; /* 防止父级联动滚动 */
+}
+
+/* 确保 el-scrollbar 及其内部 wrap 高度继承到 100% */
+.log-pane :deep(.el-scrollbar),
+.log-pane :deep(.el-scrollbar__wrap) {
+  height: 100%;
+}
+
+/* 代码块横向内容溢出时允许横向滚动 */
+/* 穿透到子组件中的代码块，允许横向滚动 */
+.log-pane :deep(pre) {
+  overflow-x: auto;
+}
+
+/* 版本日志内容长文本断行，避免横向溢出 */
+/* 穿透到 Markdown 渲染内容，长文本断行避免横向溢出 */
+.log-pane :deep(.prose) {
+  word-break: break-word;
 }
 </style>

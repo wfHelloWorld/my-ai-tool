@@ -55,6 +55,12 @@ export class FileService {
     return path.join(userDataPath, 'images');
   }
 
+  /** 获取输出目录（系统“下载”目录下的 images 子目录） */
+  getDownloadsImagesDirPath(): string {
+    const downloadsPath = app.getPath('downloads');
+    return path.join(downloadsPath, 'images');
+  }
+
   /** 计算 images 缓存目录大小（字节） */
   async getImagesCacheSize(): Promise<number> {
     const imagesDir = this.getImagesDirPath();

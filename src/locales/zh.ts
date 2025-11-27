@@ -7,6 +7,7 @@ export default {
     general: "通用",
     models: "模型",
     key: "密钥",
+    versionLog: "版本日志",
     zoomShortcuts: "快捷键：Command + / Command - / Command 0；Windows：Ctrl + / Ctrl - / Ctrl 0",
     // 新增：图片缓存相关 i18n
     imageCache: "图片缓存",

@@ -7,6 +7,7 @@ export default {
     general: "General",
     models: "Models",
     key: "keys",
+    versionLog: "Version Log",
     zoomShortcuts: "Shortcuts: Command + / Command - / Command 0; Windows: Ctrl + / Ctrl - / Ctrl 0",
     // Added: image cache i18n
     imageCache: "Image Cache",

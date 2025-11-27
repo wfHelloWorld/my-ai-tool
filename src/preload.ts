@@ -73,4 +73,15 @@ contextBridge.exposeInMainWorld("electronAPI", {
   setZoomFactor: (factor: number) => ipcRenderer.invoke("set-zoom-factor", factor),
   onZoomFactorChanged: (callback: (factor: number) => void) =>
     ipcRenderer.on("zoom-factor-changed", (_e, factor) => callback(factor)),
+
+  // 生图：万相2.5预览
+  startWan25Preview: (payload: any): Promise<string[]> =>
+    ipcRenderer.invoke("wan25-preview", payload),
+  // 生图进度订阅：渲染层可监听主进程发出的阶段信息
+  onWan25PreviewProgress: (callback: (info: any) => void) =>
+    ipcRenderer.on("wan25-preview-progress", (_e, info) => callback(info)),
+
+  // 直接缓存图片：传入 base64 与文件名，返回保存后的绝对路径
+  saveImageBlob: async (base64: string, filename: string): Promise<string> =>
+    ipcRenderer.invoke("save-image-blob", { base64, filename }),
 });

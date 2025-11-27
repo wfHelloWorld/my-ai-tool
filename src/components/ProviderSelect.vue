@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ProviderProps } from "src/types";
+import { ProviderProps } from "../types";
 import { Icon } from "@iconify/vue";
 import { computed, watch, onMounted } from "vue";
 import { useProvidersStore } from "../stores/useProviderStore";

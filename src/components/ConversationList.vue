@@ -40,6 +40,17 @@ const route = useRoute();
 
 const props = defineProps<{ filterType?: ProviderProps["type"] }>();
 
+// 兼容旧数据：当 provider.type 缺失或异常时进行归一化
+const allowed: ProviderProps["type"][] = ["chat", "vision", "imageGen", "audio", "video"];
+const normalizeType = (p?: ProviderProps | null): ProviderProps["type"] | undefined => {
+  if (!p) return undefined;
+  const t = (p as any).type as ProviderProps["type"] | undefined;
+  if (t && allowed.includes(t)) return t;
+  const name = (p.name || "").toLowerCase();
+  if (name.includes("vl") || name.includes("vision")) return "vision";
+  return "chat";
+};
+
 const currentType = computed<ProviderProps["type"] | undefined>(() => {
   // 优先使用外部传入的筛选类型，以避免依赖路由前缀
   if (props.filterType) return props.filterType;
@@ -47,7 +58,7 @@ const currentType = computed<ProviderProps["type"] | undefined>(() => {
   if (route.path.startsWith("/conversation")) {
     const current = conversationsStore.items.find((c) => c.id === conversationsStore.selectedId);
     const provider = providersStore.items.find((p) => p.id === (current?.providerId as number));
-    return provider?.type;
+    return normalizeType(provider);
   }
   return undefined;
 });
@@ -57,7 +68,7 @@ const filteredItems = computed(() => {
   if (!t) return conversationsStore.items;
   return conversationsStore.items.filter((c) => {
     const provider = providersStore.items.find((p) => p.id === (c.providerId as number));
-    return provider?.type === t;
+    return normalizeType(provider) === t;
   });
 });
 

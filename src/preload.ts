@@ -2,6 +2,7 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import { AppConfig, CreateChatProps, OnUpdatedCallback } from "./types";
+import type { Wan25PreviewPayload, Wan25PreviewProgress } from "./providers/imgGen/Wanxiang25PreviewProvider";
 
 // 使用TS,这里的接口需把类型添加到window上(interface.d.ts)
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -75,10 +76,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
     ipcRenderer.on("zoom-factor-changed", (_e, factor) => callback(factor)),
 
   // 生图：万相2.5预览
-  startWan25Preview: (payload: any): Promise<string[]> =>
+  startWan25Preview: (payload: Wan25PreviewPayload): Promise<string[]> =>
     ipcRenderer.invoke("wan25-preview", payload),
   // 生图进度订阅：渲染层可监听主进程发出的阶段信息
-  onWan25PreviewProgress: (callback: (info: any) => void) =>
+  onWan25PreviewProgress: (callback: (info: Wan25PreviewProgress) => void) =>
     ipcRenderer.on("wan25-preview-progress", (_e, info) => callback(info)),
 
   // 直接缓存图片：传入 base64 与文件名，返回保存后的绝对路径

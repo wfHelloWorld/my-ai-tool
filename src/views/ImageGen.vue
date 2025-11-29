@@ -9,7 +9,7 @@
       <el-splitter-panel v-model:size="rightPaneSize" :min="260" @update:size="onRightSizeUpdate">
         <el-splitter layout="vertical" style="height: 100%">
           <el-splitter-panel size="70%">
-            <div class="h-full flex flex-col">
+            <div class="h-full flex flex-col mb-[20px]">
               <div class="pt-5 shrink-0"></div>
               <div class="flex-1 overflow-y-auto px-[5%]">
                 <!-- 参数控制模块（占位） -->
@@ -30,7 +30,14 @@
                     </div>
                     <div>
                       <label class="block text-sm mb-1">尺寸（可选）</label>
-                      <el-input v-model="params.size" placeholder="例如 1280x1280" />
+                      <el-select v-model="params.size" placeholder="选择尺寸" style="width: 240px">
+                        <el-option
+                          v-for="item in sizeOptions"
+                          :key="item.value"
+                          :label="item.label"
+                          :value="item.value"
+                        />
+                      </el-select>
                     </div>
                   </div>
 
@@ -130,6 +137,17 @@ const params = reactive({
   watermark: false,
   size: "",
 });
+const sizeOptions: Array<{ value: string; label: string }> = [
+  { value: "1280*1280", label: "1280*1280：1:1" },
+  { value: "1024*1024", label: "1024*1024：1:1" },
+  { value: "800*1200", label: "800*1200：2:3" },
+  { value: "1200*800", label: "1200*800：3:2" },
+  { value: "960*1280", label: "960*1280：3:4" },
+  { value: "1280*960", label: "1280*960：4:3" },
+  { value: "720*1280", label: "720*1280：9:16" },
+  { value: "1280*720", label: "1280*720：16:9" },
+  { value: "1344*576", label: "1344*576：21:9" },
+];
 const seedInput = ref<string>("");
 const selectedImagePaths = ref<string[]>([]);
 const previewUrls = ref<string[]>([]);

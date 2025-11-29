@@ -5,7 +5,7 @@
       'bg-gray-200 hover:bg-gray-300': conversationsStore.selectedId === item.id,
       'bg-white hover:bg-gray-200': conversationsStore.selectedId !== item.id,
     }"
-    v-for="item in conversationsStore.items"
+    v-for="item in filteredItems"
     @contextmenu.prevent="openContextMenu(item.id)"
   >
     <a @click.prevent="goToConversation(item.id)">
@@ -26,12 +26,40 @@
 
 <script lang="ts" setup>
 import dayjs from "dayjs";
-import { ConversationPorps } from "src/types";
-import { useRouter } from "vue-router";
+import { ProviderProps } from "src/types";
+import { useRouter, useRoute } from "vue-router";
+import { computed } from "vue";
 import { useConversationStore } from "../stores/useConversationStore";
+import { useProvidersStore } from "../stores/useProviderStore";
+
 const conversationsStore = useConversationStore();
+const providersStore = useProvidersStore();
 
 const router = useRouter();
+const route = useRoute();
+
+const props = defineProps<{ filterType?: ProviderProps["type"] }>();
+
+const currentType = computed<ProviderProps["type"] | undefined>(() => {
+  // 优先使用外部传入的筛选类型，以避免依赖路由前缀
+  if (props.filterType) return props.filterType;
+  // 在对话页，根据选中会话的 provider.type 进行筛选
+  if (route.path.startsWith("/conversation")) {
+    const current = conversationsStore.items.find((c) => c.id === conversationsStore.selectedId);
+    const provider = providersStore.items.find((p) => p.id === (current?.providerId as number));
+    return provider?.type;
+  }
+  return undefined;
+});
+
+const filteredItems = computed(() => {
+  const t = currentType.value;
+  if (!t) return conversationsStore.items;
+  return conversationsStore.items.filter((c) => {
+    const provider = providersStore.items.find((p) => p.id === (c.providerId as number));
+    return provider?.type === t;
+  });
+});
 
 const openContextMenu = (id: number) => {
   window.electronAPI.showContextMenu(id);

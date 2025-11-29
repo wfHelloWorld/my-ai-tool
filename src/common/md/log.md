@@ -12,6 +12,15 @@
 - URL 规范化：规范 `createUrl` 与 `taskBaseUrl` 的构建逻辑，避免重复与错误路径，提升调用稳定性。
 - 开发日志：新增“开发日志”模块，记录详细的调试信息，方便排查问题。
 
+本次会话更新汇总：
+- 设置页样式修复：使用 `:deep(.el-tabs__content)` 穿透 Element Plus 内部结构；为日志面板的 `el-scrollbar` 与其 `__wrap` 设定 `height: 100%`，修复滚动问题。
+- 文案国际化：在 `locales/zh.ts` 与 `locales/en.ts` 新增 `settings.versionLog`，并将 `Settings.vue` 标签替换为 `{{ $t("settings.versionLog") }}`，实现中英文切换。
+- 类型安全增强：定义并导出 `Wan25PreviewProgress`；将 `Wanxiang25PreviewProvider.generate` 的回调参数由 `any` 改为强类型；为 `postJson/getJson` 增加更具体的返回类型；在 `preload.ts` 中为 `startWan25Preview` 与 `onWan25PreviewProgress` 引入严格类型；在 `interface.d.ts` 中将回调 `info` 类型替换为 `Wan25PreviewProgress`。
+- 生图尺寸选择：将 `ImageGen.vue` 的尺寸输入改为下拉选择（`el-select`），统一值格式为 `宽*高`（如 `1280*1280`），与接口规范一致。
+- 右栏默认宽度：确认右侧面板默认宽度为 `30%`，并说明最小宽度 `260px` 的约束与可选的强制策略。
+- 会话列表筛选：`ConversationList` 支持 `filterType` 属性；`Home.vue` 传入 `chat`、`Vision.vue` 传入 `vision`；`Conversation.vue` 在未传入时自动根据当前会话的 `provider.type` 进行筛选。
+- 历史页筛选：`History.vue` 顶部新增类型选择器（全部、chat、vision、imageGen、audio、video），联动 `ConversationList` 实现按类型过滤；初始化 Provider 与会话数据以保证展示正常。
+
 # Version: 1.0.4
 - 历史界面视口调整
 - 新增固定顶部可拖拽区域(主要是针对macOS的窗口拖拽)

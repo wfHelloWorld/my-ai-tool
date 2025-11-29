@@ -12,7 +12,7 @@
             <div class="h-full flex flex-col">
               <div class="pt-5 shrink-0"></div>
               <div class="flex-1 overflow-y-auto px-[5%]">
-                <ConversationList />
+                <ConversationList :filter-type="'chat'" />
               </div>
             </div>
           </el-splitter-panel>

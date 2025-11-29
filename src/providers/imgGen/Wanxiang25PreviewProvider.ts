@@ -28,6 +28,15 @@ export interface Wan25PreviewOptions {
   outDirName?: string; // 默认 images
 }
 
+export type Wan25PreviewProgress =
+  | { stage: "prepared"; imageCount: number }
+  | { stage: "created"; taskId: string; status: string }
+  | { stage: "poll"; try: number; status: string }
+  | { stage: "downloading"; index: number; url: string; outPath: string }
+  | { stage: "saved"; index: number; path: string }
+  | { stage: "failed"; taskId?: string; message: string }
+  | { stage: "timeout"; taskId?: string };
+
 export class Wanxiang25PreviewProvider {
   private apiKey?: string;
   private outDirName: string;
@@ -41,7 +50,7 @@ export class Wanxiang25PreviewProvider {
    * 执行预览生图流程：创建任务 → 轮询状态 → 下载结果到本地
    * 返回：保存后的本地绝对路径数组
    */
-  async generate(payload: Wan25PreviewPayload, onProgress?: (info: any) => void): Promise<string[]> {
+  async generate(payload: Wan25PreviewPayload, onProgress?: (info: Wan25PreviewProgress) => void): Promise<string[]> {
     const apiKey = payload.apiKey || this.apiKey;
     if (!apiKey) throw new Error("DASHSCOPE_API_KEY 未提供");
 
@@ -140,7 +149,11 @@ export class Wanxiang25PreviewProvider {
     return `data:${mime};base64,${b64}`;
   }
 
-  private async postJson(url: string, body: unknown, apiKey: string): Promise<any> {
+  private async postJson(
+    url: string,
+    body: unknown,
+    apiKey: string
+  ): Promise<{ output?: { task_id?: string; task_status?: string } }> {
     const resp = await fetch(url, {
       method: "POST",
       headers: {
@@ -157,7 +170,16 @@ export class Wanxiang25PreviewProvider {
     return resp.json();
   }
 
-  private async getJson(url: string, apiKey: string): Promise<any> {
+  private async getJson(
+    url: string,
+    apiKey: string
+  ): Promise<{
+    output?: {
+      task_status?: string;
+      results?: Array<{ url?: string }>;
+      message?: string;
+    };
+  }> {
     const resp = await fetch(url, {
       method: "GET",
       headers: {

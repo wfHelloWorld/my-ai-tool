@@ -78,9 +78,12 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // 生图：万相2.5预览
   startWan25Preview: (payload: Wan25PreviewPayload): Promise<string[]> =>
     ipcRenderer.invoke("wan25-preview", payload),
-  // 生图进度订阅：渲染层可监听主进程发出的阶段信息
-  onWan25PreviewProgress: (callback: (info: Wan25PreviewProgress) => void) =>
-    ipcRenderer.on("wan25-preview-progress", (_e, info) => callback(info)),
+  // 生图进度订阅：返回取消订阅函数，便于组件卸载时清理
+  onWan25PreviewProgress: (callback: (info: Wan25PreviewProgress) => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, info: Wan25PreviewProgress) => callback(info);
+    ipcRenderer.on("wan25-preview-progress", handler);
+    return () => ipcRenderer.off("wan25-preview-progress", handler);
+  },
 
   // 直接缓存图片：传入 base64 与文件名，返回保存后的绝对路径
   saveImageBlob: async (base64: string, filename: string): Promise<string> =>

@@ -17,6 +17,8 @@ export interface Wan25PreviewPayload {
   size?: string; // 图片尺寸（可选），例如 1280x1280
   apiKey?: string; // 可覆盖构造函数传入的 key
   outDirName?: string; // 输出子目录名（默认 images）
+  clientId?: string; // 渲染层任务标识（用于并发归档）
+  name?: string; // 任务可读名称（用于 UI 展示）
   // 由外部提供的 URL，不在本文件拼接 endpoint
   createUrl: string; // 创建异步任务的完整 URL
   taskBaseUrl?: string; // 查询任务状态的基础 URL，例如 https://xxx/api/v1/tasks
@@ -29,13 +31,14 @@ export interface Wan25PreviewOptions {
 }
 
 export type Wan25PreviewProgress =
-  | { stage: "prepared"; imageCount: number }
+  | { stage: "prepared"; imageCount: number; taskId?: string }
   | { stage: "created"; taskId: string; status: string }
-  | { stage: "poll"; try: number; status: string }
-  | { stage: "downloading"; index: number; url: string; outPath: string }
-  | { stage: "saved"; index: number; path: string }
+  | { stage: "poll"; try: number; status: string; taskId?: string }
+  | { stage: "downloading"; index: number; url: string; outPath: string; taskId?: string }
+  | { stage: "saved"; index: number; path: string; taskId?: string }
   | { stage: "failed"; taskId?: string; message: string }
-  | { stage: "timeout"; taskId?: string };
+  | { stage: "timeout"; taskId?: string }
+  | { stage: "error"; taskId?: string; message: string };
 
 export class Wanxiang25PreviewProvider {
   private apiKey?: string;
@@ -107,7 +110,7 @@ export class Wanxiang25PreviewProvider {
       await this.sleep(10_000);
       const r = await this.getJson(taskUrl, apiKey);
       status = r?.output?.task_status || status;
-      onProgress?.({ stage: "poll", try: tries + 1, status });
+      onProgress?.({ stage: "poll", try: tries + 1, status, taskId });
 
       if (status === "SUCCEEDED") {
         const results: Array<{ url?: string }> = r?.output?.results || [];
@@ -115,9 +118,9 @@ export class Wanxiang25PreviewProvider {
           const u = results[i]?.url;
           if (!u) continue;
           const out = await this.getOutputPath(i);
-          onProgress?.({ stage: "downloading", index: i, url: u, outPath: out });
+          onProgress?.({ stage: "downloading", index: i, url: u, outPath: out, taskId });
           const saved = await this.downloadToFile(u, out);
-          onProgress?.({ stage: "saved", index: i, path: saved });
+          onProgress?.({ stage: "saved", index: i, path: saved, taskId });
           savedPaths.push(saved);
         }
         return savedPaths;

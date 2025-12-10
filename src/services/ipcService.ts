@@ -159,9 +159,11 @@ export class IpcService {
           ...payload,
           apiKey: apiKey ? `${String(apiKey).slice(0, 4)}***${String(apiKey).slice(-4)}` : "<missing>",
         });
+        const clientId = payload?.clientId;
+        const name = payload?.name;
         const result = await provider.generate(payload, (info) => {
           try {
-            event.sender.send("wan25-preview-progress", info);
+            event.sender.send("wan25-preview-progress", { ...info, clientId, name });
           } catch (e) {
             console.warn("[wan25-preview] progress send failed:", String(e));
           }
@@ -171,7 +173,7 @@ export class IpcService {
       } catch (err) {
         console.error("[wan25-preview] error:", err);
         try {
-          event.sender.send("wan25-preview-progress", { stage: "error", message: err instanceof Error ? err.message : String(err) });
+          event.sender.send("wan25-preview-progress", { stage: "error", message: err instanceof Error ? err.message : String(err), clientId: payload?.clientId, name: payload?.name });
         } catch (e) {
           console.warn("[wan25-preview] progress send failed in error:", String(e));
         }

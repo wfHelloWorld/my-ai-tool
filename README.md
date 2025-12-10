@@ -44,7 +44,7 @@ $env:ELECTRON_MIRROR = "https://npmmirror.com/mirrors/electron/"; npm run make
 - Squirrel：`out/make/squirrel.windows/x64/`
   - 示例：`Vchat-1.0.3 Setup.exe`、`my_ai_tool-1.0.3-full.nupkg`、`RELEASES`
 
-# Windows 发布（publish）到 GitHub Releases 指南
+# 3. 发布 Windows 发布（publish）到 GitHub Releases 指南
 确保你已经在 GitHub 上创建了仓库，并准备了发布令牌（`GH_TOKEN` 或 `GITHUB_TOKEN`，权限至少含 `repo`、`workflow`）。在项目目录 `my-new-app` 内执行以下步骤。
 
 ## 必备环境变量（其一或其二）

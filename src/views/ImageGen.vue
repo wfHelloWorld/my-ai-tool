@@ -30,7 +30,7 @@
                     </div>
                     <div>
                       <label class="block text-sm mb-1">尺寸（可选）</label>
-                      <el-select v-model="params.size" placeholder="选择尺寸" style="width: 240px">
+                      <el-select v-model="params.size" placeholder="选择尺寸" class="w-full">
                         <el-option
                           v-for="item in sizeOptions"
                           :key="item.value"
@@ -74,20 +74,16 @@
                       <el-icon class="is-loading"><i class="el-icon-loading"></i></el-icon>
                       <span>正在生成，请稍候…</span>
                     </div>
-                    <div v-if="progressLogs.length === 0 && !isGenerating" class="text-gray-500 text-sm">暂无进度</div>
-                    <ul v-else class="space-y-1 text-sm text-gray-700 max-h-40 overflow-auto border rounded p-2 bg-gray-50">
-                      <li v-for="(log, idx) in progressLogs" :key="idx">
-                        <span class="mr-2">[{{ log.stage }}]</span>
-                        <span v-if="log.message">{{ log.message }}</span>
-                        <span v-else-if="log.stage==='created'">任务已创建：{{ log.taskId }}</span>
-                        <span v-else-if="log.stage==='poll'">轮询第 {{ log.try }} 次，状态 {{ log.status }}</span>
-                        <span v-else-if="log.stage==='downloading'">下载第 {{ log.index + 1 }} 张</span>
-                        <span v-else-if="log.stage==='saved'">已保存第 {{ log.index + 1 }} 张：{{ log.path }}</span>
-                        <span v-else-if="log.stage==='prepared'">已准备 {{ log.imageCount }} 张</span>
-                        <span v-else-if="log.stage==='timeout'">任务超时</span>
-                        <span v-else-if="log.stage==='failed'">失败：{{ log.message }}</span>
-                      </li>
-                    </ul>
+                    <div v-if="wanPreviewStore.tasks.length === 0" class="text-gray-500 text-sm">暂无进度</div>
+                    <div v-else class="space-y-3 max-h-60 overflow-auto border rounded p-2 bg-gray-50">
+                      <div v-for="t in wanPreviewStore.tasks" :key="t.clientId" class="space-y-1">
+                        <div class="flex items-center justify-between text-sm text-gray-700">
+                          <span class="font-medium truncate max-w-[60%]">任务：{{ t.name }}</span>
+                          <span class="text-xs text-gray-500">{{ t.status === 'running' ? '进行中' : t.status }}</span>
+                        </div>
+                        <el-progress :percentage="t.percentage" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -108,12 +104,13 @@
 <script lang="ts" setup>
 import { ProviderProps } from "src/types";
 import ProviderSelect from "../components/ProviderSelect.vue";
-import { computed, onMounted, ref, reactive, toRaw } from "vue";
+import { computed, onMounted, onUnmounted, ref, reactive, toRaw } from "vue";
 import MessageInputChat from "../components/MessageInputChat.vue";
 import ConversationList from "../components/ConversationList.vue";
 import { useRouter } from "vue-router";
 import { useConversationStore } from "../stores/useConversationStore";
 import { useProvidersStore } from "../stores/useProviderStore";
+import { useWanxiang25PreviewStatusStore } from "../stores/useWanxiang25PreviewStatusStore";
 const providersStore = useProvidersStore();
 const conversationsStore = useConversationStore();
 // conversationsStore.selectedId = -1
@@ -129,6 +126,7 @@ const getStoredPercentStr = () => {
   return Number.isFinite(n) ? `${getClampedPercent(n)}%` : "30%";
 };
 const rightPaneSize = ref<string>(getStoredPercentStr());
+const wanPreviewStore = useWanxiang25PreviewStatusStore();
 
 // 参数控制（占位用，可绑定到请求）
 const params = reactive({
@@ -317,6 +315,22 @@ onMounted(async () => {
   } catch (e) {
     rightPaneSize.value = "30%";
   }
+  try {
+    unsubscribeWan25 = window.electronAPI.onWan25PreviewProgress((info: any) => {
+      try {
+        try { wanPreviewStore.append(info); } catch (_) {}
+        progressLogs.value.push(info);
+      } catch (_) {}
+    });
+  } catch (_) {}
+});
+
+let unsubscribeWan25: (() => void) | null = null;
+onUnmounted(() => {
+  try {
+    unsubscribeWan25?.();
+  } catch (_) {}
+  unsubscribeWan25 = null;
 });
 
 // 拆分从providerSelect组件中获取的provider信息
@@ -332,16 +346,15 @@ const modelInfo = computed(() => {
  * 生图请求（调用万相2.5预览 Provider）
  */
 const createConversation = async (question: string) => {
+  let clientId: string | null = null;
+  let taskName: string = "";
   try {
     console.log("[ImageGen] prompt:", question);
-    // 进度初始化与订阅
+    clientId = `${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    taskName = String(question || '').slice(0, 50) || '未命名任务';
     progressLogs.value = [];
     isGenerating.value = true;
-    window.electronAPI.onWan25PreviewProgress((info: any) => {
-      try {
-        progressLogs.value.push(info);
-      } catch (_) {}
-    });
+    try { wanPreviewStore.beginTask(clientId, taskName); } catch (_) {}
     // 使用多图路径，不再使用 firstImagePath
     console.log("[ImageGen] imagePaths:", selectedImagePaths.value);
 
@@ -409,16 +422,18 @@ const createConversation = async (question: string) => {
     if (params.size) payload.size = String(params.size);
     console.log("[ImageGen] payload:", { ...payload, apiKey: maskedKey });
 
-    const resultPaths = await window.electronAPI.startWan25Preview(payload);
+    const resultPaths = await window.electronAPI.startWan25Preview({ ...payload, clientId, name: taskName });
     console.log("[ImageGen] result paths:", resultPaths);
     genResultPaths.value = resultPaths || [];
     isGenerating.value = false;
+    try { if (clientId) wanPreviewStore.finish(clientId); } catch (_) {}
     if ((resultPaths || []).length > 0) {
       progressLogs.value.push({ stage: "completed", count: resultPaths.length });
     }
   } catch (err) {
     console.error("[ImageGen] error:", err);
     isGenerating.value = false;
+    try { if (clientId) wanPreviewStore.finish(clientId); } catch (_) {}
     progressLogs.value.push({ stage: "error", message: err instanceof Error ? err.message : String(err) });
   }
 };

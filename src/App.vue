@@ -1,75 +1,73 @@
 <template>
   <div class="h-screen flex">
-    <!-- 左侧窄栏：顶部聊天；底部依次：历史、设置 -->
-    <aside class="w-[150px] h-full border-r border-gray-100 bg-gray-50 flex flex-col justify-between drag-region">
-      <!-- 顶部图标栈：聊天 + 识图/生图/语音/视频，可在高度不足时滚动 -->
-      <div ref="topStackRef"
-        :class="['flex flex-col items-start pt-4 space-y-6 no-drag flex-1 min-h-0 overflow-auto', showScrollbar ? 'scrollbar-visible' : 'scrollbar-hidden']">
-        <!-- 聊天 -->
-        <router-link to="/"
-          :class="['flex flex-row items-center justify-start mt-5 px-4', route.path === '/' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="fluent:chat-24-regular" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/' ? 'primary' : 'info'" size="large">{{
-          $t('common.chat') }}</el-text>
-        </router-link>
-        <!-- 识图 -->
-        <router-link to="/vision"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/vision' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:image-search-outline" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/vision' ? 'primary' : 'info'" size="large">{{
-          $t('common.vision') }}</el-text>
-        </router-link>
-        <!-- 生图 -->
-        <router-link to="/image"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/image' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:image-plus-outline" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/image' ? 'primary' : 'info'" size="large">{{
-          $t('common.image') }}</el-text>
-        </router-link>
-        <!-- 语音 -->
-        <router-link to="/voice"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/voice' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:microphone-outline" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/voice' ? 'primary' : 'info'" size="large">{{
-          $t('common.voice') }}</el-text>
-        </router-link>
-        <!-- 视频 -->
-        <router-link to="/video"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/video' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:video-outline" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/video' ? 'primary' : 'info'" size="large">{{
-          $t('common.video') }}</el-text>
-        </router-link>
-      </div>
-      <el-divider />
-      <!-- 底部按钮区域：下载、历史、设置 -->
-      <div class="p-4 no-drag flex flex-col items-start space-y-6">
-        <!-- 下载 -->
-        <router-link to="/download"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/download' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:download" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/download' ? 'primary' : 'info'" size="large">{{
-          $t('common.download') }}</el-text>
-        </router-link>
-        <!-- 历史 -->
-        <router-link to="/history"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/history' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:history" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/history' ? 'primary' : 'info'" size="large">{{
-          $t('common.history') }}</el-text>
-        </router-link>
-        <!-- 设置 -->
-        <router-link to="/settings"
-          :class="['flex flex-row items-center justify-start px-4', route.path === '/settings' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="radix-icons:gear" width="24" height="24" class="mr-2" />
-          <el-text class="select-none" :type="route.path === '/settings' ? 'primary' : 'info'" size="large">{{
-          $t('common.settings') }}</el-text>
-        </router-link>
-      </div>
+    <!-- 左侧菜单栏 -->
+    <aside class="w-[200px] h-full bg-white border-r border-gray-200 flex flex-col drag-region">
+      <!-- 顶部功能菜单（可滚动） -->
+      <el-menu
+        :default-active="route.path"
+        class="el-menu-vertical-demo flex-1 overflow-y-auto border-r-0 no-drag"
+        :router="true"
+      >
+        <el-menu-item index="/" class="mt-9">
+          <el-icon><Icon icon="fluent:chat-24-regular" /></el-icon>
+          <span>{{ $t('common.chat') }}</span>
+        </el-menu-item>
+        
+        <el-menu-item index="/vision">
+          <el-icon><Icon icon="mdi:image-search-outline" /></el-icon>
+          <span>{{ $t('common.vision') }}</span>
+        </el-menu-item>
+
+        <el-sub-menu index="/image">
+          <template #title>
+            <el-icon><Icon icon="mdi:image-plus-outline" /></el-icon>
+            <span>{{ $t('common.image') }}</span>
+          </template>
+          <el-menu-item index="/image/wan2.5-preview">
+            <span>wan2.5-i2i-preview</span>
+          </el-menu-item>
+          <el-menu-item index="/image/wanx2.1-edit">
+            <span>wanx2.1-imageedit</span>
+          </el-menu-item>
+        </el-sub-menu>
+
+        <el-menu-item index="/voice">
+          <el-icon><Icon icon="mdi:microphone-outline" /></el-icon>
+          <span>{{ $t('common.voice') }}</span>
+        </el-menu-item>
+
+        <el-menu-item index="/video">
+          <el-icon><Icon icon="mdi:video-outline" /></el-icon>
+          <span>{{ $t('common.video') }}</span>
+        </el-menu-item>
+      </el-menu>
+
+      <!-- 底部系统菜单（固定） -->
+      <el-menu
+        :default-active="route.path"
+        class="el-menu-vertical-demo flex-shrink-0 border-r-0 border-t border-gray-100 no-drag"
+        :router="true"
+      >
+        <el-menu-item index="/download">
+          <el-icon><Icon icon="mdi:download" /></el-icon>
+          <span>{{ $t('common.download') }}</span>
+        </el-menu-item>
+
+        <el-menu-item index="/history">
+          <el-icon><Icon icon="mdi:history" /></el-icon>
+          <span>{{ $t('common.history') }}</span>
+        </el-menu-item>
+
+        <el-menu-item index="/settings">
+          <el-icon><Icon icon="radix-icons:gear" /></el-icon>
+          <span>{{ $t('common.settings') }}</span>
+        </el-menu-item>
+      </el-menu>
     </aside>
 
     <!-- 顶部可拖拽区域 -->
-    <div class="fixed top-0 left-[80px] right-0 h-[28px] drag-region bg-transparent"></div>
+    <div class="fixed top-0 left-[200px] right-0 h-[28px] drag-region bg-transparent pointer-events-none"></div>
+    
     <!-- 主内容区域 -->
     <main class="flex-1 h-full overflow-hidden">
       <RouterView class="h-full" />
@@ -79,7 +77,7 @@
 
 <script setup lang="ts">
 import { Icon } from "@iconify/vue";
-import { onBeforeMount, onMounted, onBeforeUnmount, ref } from "vue";
+import { onBeforeMount, onMounted, ref } from "vue";
 import { useConversationStore } from "./stores/useConversationStore";
 import { useLogStore } from "./stores/useLogStore";
 import { useRouter, useRoute } from "vue-router";
@@ -89,7 +87,7 @@ const route = useRoute();
 const conversationsStore = useConversationStore();
 const logStore = useLogStore();
 
-// 监听菜单事件（在浏览器预览中 window.electronAPI 不存在，使用可选链避免报错）
+// 监听菜单事件
 window.electronAPI?.onMenuNewConversation(() => {
   router.push("/");
 });
@@ -98,19 +96,8 @@ window.electronAPI?.onMenuOpenSettings(() => {
 });
 
 onBeforeMount(async () => {
-  // 读取 conversations
   conversationsStore.fetchConversations();
 });
-
-const topStackRef = ref<HTMLElement | null>(null);
-const showScrollbar = ref(false);
-function updateScrollState() {
-  const el = topStackRef.value;
-  if (!el) return;
-  // 当需要滚动（内容高度大于容器高度）时显示滚动条
-  showScrollbar.value = el.scrollHeight > el.clientHeight;
-}
-let ro: ResizeObserver | null = null;
 
 onMounted(async () => {
   // 日志模块
@@ -135,45 +122,9 @@ onMounted(async () => {
   window.electronAPI?.onDeleteConversation(async (id: number) => {
     await conversationsStore.deleteConversation(id);
   });
-  // 观察尺寸变化，动态控制滚动条显示
-  updateScrollState();
-  ro = new ResizeObserver(() => updateScrollState());
-  if (topStackRef.value) ro.observe(topStackRef.value);
-  window.addEventListener('resize', updateScrollState);
-});
-
-onBeforeUnmount(() => {
-  if (ro) ro.disconnect();
-  window.removeEventListener('resize', updateScrollState);
 });
 </script>
 
 <style scoped>
-/* 默认隐藏滚动条，仅在 overflow 发生时显示（由类切换控制） */
-.scrollbar-hidden {
-  scrollbar-width: none;
-  /* Firefox */
-}
-
-.scrollbar-hidden::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-  /* Chrome/Safari */
-}
-
-.scrollbar-visible {
-  scrollbar-width: thin;
-  /* Firefox */
-}
-
-.scrollbar-visible::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-  /* Chrome/Safari */
-}
-
-.scrollbar-visible::-webkit-scrollbar-thumb {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 3px;
-}
+/* 移除之前的 scrollbar 样式，使用默认或 element-plus 样式 */
 </style>

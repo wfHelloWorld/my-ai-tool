@@ -2,9 +2,9 @@
   <div class="h-full" ref="outerContainer">
     <el-splitter style="height: 100%">
       <el-splitter-panel :min="300">
-        <div class="h-full w-[90%] pl-[10%] flex items-center justify-center">
+        <!-- <div class="h-full w-[90%] pl-[10%] flex items-center justify-center">
           <ProviderSelect v-model="currentProdiver" @update:model-value="onModelChange" />
-        </div>
+        </div> -->
       </el-splitter-panel>
       <el-splitter-panel v-model:size="rightPaneSize" :min="260" @update:size="onRightSizeUpdate">
         <el-splitter layout="vertical" style="height: 100%">
@@ -91,7 +91,11 @@
           </el-splitter-panel>
           <el-splitter-panel>
             <div class="h-full w-full flex items-center justify-center">
-              <MessageInputChat @create="createConversation" :disabled="currentProdiver === ''" :simpleMode="true" />
+              <MessageInputChat
+                ref="messageInputRef"
+                @create="createConversation"
+                :simpleMode="true"
+              />
             </div>
           </el-splitter-panel>
         </el-splitter>
@@ -335,10 +339,10 @@ onUnmounted(() => {
 
 // 拆分从providerSelect组件中获取的provider信息
 const modelInfo = computed(() => {
-  const [providerId, selectedModel] = currentProdiver.value.split("/");
+  const target = providersStore.items.find((p) => p.name === "wan2.5-i2i-preview");
   return {
-    providerId: parseInt(providerId),
-    selectedModel,
+    providerId: target?.id,
+    selectedModel: target?.name || "wan2.5-i2i-preview",
   };
 });
 
@@ -359,8 +363,7 @@ const createConversation = async (question: string) => {
     console.log("[ImageGen] imagePaths:", selectedImagePaths.value);
 
     // 获取 provider URL
-    const { providerId } = modelInfo.value;
-    const provider = providersStore.items.find((p) => p.id === providerId);
+    const provider = providersStore.items.find((p) => p.name === "wan2.5-i2i-preview");
     const providerUrl = provider?.url || "";
     console.log("[ImageGen] provider:", provider);
     console.log("[ImageGen] baseUrl:", providerUrl);

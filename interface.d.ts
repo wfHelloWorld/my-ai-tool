@@ -33,6 +33,10 @@ declare global {
       startWan25Preview: (payload: import('./src/providers/imgGen/Wanxiang25PreviewProvider').Wan25PreviewPayload) => Promise<string[]>;
       onWan25PreviewProgress: (callback: (info: import('./src/providers/imgGen/Wanxiang25PreviewProvider').Wan25PreviewProgress) => void) => () => void;
 
+      // 生图：万相2.1图像编辑
+      startWan21ImageEdit: (payload: import('./src/providers/imgGen/Wanxiang21ImageEditProvider').Wan21ImageEditPayload) => Promise<string[]>;
+      onWan21ImageEditProgress: (callback: (info: import('./src/providers/imgGen/Wanxiang21ImageEditProvider').Wan21ImageEditProgress) => void) => () => void;
+
       // 直接缓存图片：传入 base64 与文件名，返回保存后的绝对路径
       saveImageBlob: (base64: string, filename: string) => Promise<string>;
     };

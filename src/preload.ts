@@ -3,6 +3,7 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import { AppConfig, CreateChatProps, OnUpdatedCallback } from "./types";
 import type { Wan25PreviewPayload, Wan25PreviewProgress } from "./providers/imgGen/Wanxiang25PreviewProvider";
+import type { Wan21ImageEditPayload, Wan21ImageEditProgress } from "./providers/imgGen/Wanxiang21ImageEditProvider";
 
 // 使用TS,这里的接口需把类型添加到window上(interface.d.ts)
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -83,6 +84,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     const handler = (_e: Electron.IpcRendererEvent, info: Wan25PreviewProgress) => callback(info);
     ipcRenderer.on("wan25-preview-progress", handler);
     return () => ipcRenderer.off("wan25-preview-progress", handler);
+  },
+
+  // 生图：万相2.1图像编辑
+  startWan21ImageEdit: (payload: Wan21ImageEditPayload): Promise<string[]> =>
+    ipcRenderer.invoke("wan21-imageedit", payload),
+  // 生图进度订阅（万相2.1图像编辑）
+  onWan21ImageEditProgress: (callback: (info: Wan21ImageEditProgress) => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, info: Wan21ImageEditProgress) => callback(info);
+    ipcRenderer.on("wan21-imageedit-progress", handler);
+    return () => ipcRenderer.off("wan21-imageedit-progress", handler);
   },
 
   // 直接缓存图片：传入 base64 与文件名，返回保存后的绝对路径

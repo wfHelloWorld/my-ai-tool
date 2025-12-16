@@ -78,7 +78,7 @@ export const providers: ProviderProps[] = [
     updatedAt: "2025-08-27T08:00:00Z",
     label: "阿里云百炼",
     type: "imageGen",
-    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis"
   },
   {
     id: 8,

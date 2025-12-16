@@ -4,7 +4,8 @@ import { FileService } from './fileService';
 import { configManager } from '../config';
 import { CreateChatProps } from '../types';
 import { updateMenu, createContextMenu } from '../menu';
-import { Wanxiang25PreviewProvider } from "../providers/imgGen";
+import { Wanxiang25PreviewProvider } from "../providers/imgGen/Wanxiang25PreviewProvider";
+import { Wanxiang21ImageEditProvider, Wan21ImageEditProgress } from "../providers/imgGen/Wanxiang21ImageEditProvider";
 
 /**
  * IPC服务，负责处理主进程和渲染进程之间的通信
@@ -176,6 +177,37 @@ export class IpcService {
           event.sender.send("wan25-preview-progress", { stage: "error", message: err instanceof Error ? err.message : String(err), clientId: payload?.clientId, name: payload?.name });
         } catch (e) {
           console.warn("[wan25-preview] progress send failed in error:", String(e));
+        }
+        throw err;
+      }
+    });
+
+    ipcMain.handle("wan21-imageedit", async (event, payload) => {
+      try {
+        const cfg = await configManager.getConfig();
+        const apiKey = payload?.apiKey || cfg.DASHSCOPE_API_KEY;
+        const provider = new Wanxiang21ImageEditProvider({ apiKey });
+        console.log("[wan21-imageedit] payload:", {
+          ...payload,
+          apiKey: apiKey ? `${String(apiKey).slice(0, 4)}***${String(apiKey).slice(-4)}` : "<missing>",
+        });
+        const clientId = payload?.clientId;
+        const name = payload?.name;
+        const result = await provider.generate(payload, (info: Wan21ImageEditProgress) => {
+          try {
+            event.sender.send("wan21-imageedit-progress", { ...info, clientId, name });
+          } catch (e) {
+            console.warn("[wan21-imageedit] progress send failed:", String(e));
+          }
+        });
+        console.log("[wan21-imageedit] result paths:", result);
+        return result;
+      } catch (err) {
+        console.error("[wan21-imageedit] error:", err);
+        try {
+          event.sender.send("wan21-imageedit-progress", { stage: "error", message: err instanceof Error ? err.message : String(err), clientId: payload?.clientId, name: payload?.name });
+        } catch (e) {
+          console.warn("[wan21-imageedit] progress send failed in error:", String(e));
         }
         throw err;
       }

@@ -19,6 +19,7 @@ export interface Wan25PreviewPayload {
   outDirName?: string; // 输出子目录名（默认 images）
   clientId?: string; // 渲染层任务标识（用于并发归档）
   name?: string; // 任务可读名称（用于 UI 展示）
+  model?: string; // 模型名称（可选），默认 wan2.5-i2i-preview
   // 由外部提供的 URL，不在本文件拼接 endpoint
   createUrl: string; // 创建异步任务的完整 URL
   taskBaseUrl?: string; // 查询任务状态的基础 URL，例如 https://xxx/api/v1/tasks
@@ -72,9 +73,12 @@ export class Wanxiang25PreviewProvider {
     }
     onProgress?.({ stage: "prepared", imageCount: images.length });
 
+    const model = payload.model;
+    console.log(`[Wanxiang25PreviewProvider] generate start. model=${model}, prompt=${payload.prompt?.slice(0, 50)}...`);
+
     // 组装请求体（与 mjs 保持一致，允许参数覆盖）
     const body = {
-      model: "wan2.5-i2i-preview",
+      model,
       input: {
         prompt: payload.prompt,
         images,
@@ -109,17 +113,24 @@ export class Wanxiang25PreviewProvider {
     while (status !== "SUCCEEDED" && status !== "FAILED" && tries < maxTries) {
       await this.sleep(10_000);
       const r = await this.getJson(taskUrl, apiKey);
-      status = r?.output?.task_status || status;
+      const newStatus = r?.output?.task_status || status;
+      if (newStatus !== status) {
+        console.log(`[Wanxiang25PreviewProvider] Status changed: ${status} -> ${newStatus} (try ${tries})`);
+      }
+      status = newStatus;
       onProgress?.({ stage: "poll", try: tries + 1, status, taskId });
 
       if (status === "SUCCEEDED") {
+        console.log("[Wanxiang25PreviewProvider] Task succeeded. Downloading results...");
         const results: Array<{ url?: string }> = r?.output?.results || [];
         for (let i = 0; i < results.length; i++) {
           const u = results[i]?.url;
           if (!u) continue;
           const out = await this.getOutputPath(i);
+          console.log(`[Wanxiang25PreviewProvider] Downloading image ${i} from ${u}`);
           onProgress?.({ stage: "downloading", index: i, url: u, outPath: out, taskId });
           const saved = await this.downloadToFile(u, out);
+          console.log(`[Wanxiang25PreviewProvider] Saved to ${saved}`);
           onProgress?.({ stage: "saved", index: i, path: saved, taskId });
           savedPaths.push(saved);
         }
@@ -128,6 +139,7 @@ export class Wanxiang25PreviewProvider {
 
       if (status === "FAILED") {
         const msg = typeof r?.output?.message === "string" ? r.output.message : "任务失败";
+        console.error("[Wanxiang25PreviewProvider] Task failed:", msg);
         onProgress?.({ stage: "failed", taskId, message: msg });
         throw new Error(msg);
       }
@@ -135,6 +147,7 @@ export class Wanxiang25PreviewProvider {
     }
 
     if (status !== "SUCCEEDED") {
+      console.error("[Wanxiang25PreviewProvider] Task timeout.");
       onProgress?.({ stage: "timeout", taskId });
       throw new Error("任务超时");
     }

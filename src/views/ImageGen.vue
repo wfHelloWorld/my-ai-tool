@@ -412,6 +412,7 @@ const createConversation = async (question: string) => {
     const payload: any = {
       prompt: String(question ?? ""),
       imagePaths,
+      model: modelInfo.value.selectedModel,
       n: Number(params.n ?? 1),
       watermark: Boolean(params.watermark),
       apiKey: String(apiKey ?? ""),

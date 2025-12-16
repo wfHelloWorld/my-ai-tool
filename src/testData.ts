@@ -76,9 +76,31 @@ export const providers: ProviderProps[] = [
     avatar: "bx:basketball",
     createdAt: "2025-08-27T08:00:00Z",
     updatedAt: "2025-08-27T08:00:00Z",
-    label: "deepseek",
+    label: "阿里云百炼",
     type: "imageGen",
-    url:"https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
   },
-  
+  {
+    id: 8,
+    name: "qwen3-vl-plus",
+    title: "千问识图qwen3-vl-plus(为了节约流量请发起新对话)",
+    desc: "识图",
+    avatar: "bx:beer",
+    createdAt: "2023-12-15T10:30:00Z",
+    updatedAt: "2024-05-20T09:45:00Z",
+    label: "阿里云百炼",
+    type: "vision",
+  },
+  {
+    id: 9,
+    name: "wanx2.1-imageedit",
+    title: "通义万相-通用图像编辑2.1",
+    desc: "通义万相-通用图像编辑2.1",
+    avatar: "bx:basketball",
+    createdAt: "2025-08-27T08:00:00Z",
+    updatedAt: "2025-08-27T08:00:00Z",
+    label: "阿里云百炼",
+    type: "imageGen",
+    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis"
+  },
 ];

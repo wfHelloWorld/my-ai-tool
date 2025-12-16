@@ -1,68 +1,68 @@
 <template>
   <div class="h-screen flex">
     <!-- 左侧窄栏：顶部聊天；底部依次：历史、设置 -->
-    <aside class="w-[80px] h-full border-r border-gray-100 bg-gray-50 flex flex-col justify-between drag-region">
+    <aside class="w-[150px] h-full border-r border-gray-100 bg-gray-50 flex flex-col justify-between drag-region">
       <!-- 顶部图标栈：聊天 + 识图/生图/语音/视频，可在高度不足时滚动 -->
       <div ref="topStackRef"
-        :class="['flex flex-col items-center pt-4 space-y-6 no-drag flex-1 min-h-0 overflow-auto', showScrollbar ? 'scrollbar-visible' : 'scrollbar-hidden']">
+        :class="['flex flex-col items-start pt-4 space-y-6 no-drag flex-1 min-h-0 overflow-auto', showScrollbar ? 'scrollbar-visible' : 'scrollbar-hidden']">
         <!-- 聊天 -->
         <router-link to="/"
-          :class="['flex flex-col items-center justify-center mt-5', route.path === '/' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="fluent:chat-24-regular" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start mt-5 px-4', route.path === '/' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="fluent:chat-24-regular" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/' ? 'primary' : 'info'" size="large">{{
           $t('common.chat') }}</el-text>
         </router-link>
         <!-- 识图 -->
         <router-link to="/vision"
-          :class="['flex flex-col items-center justify-center', route.path === '/vision' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:image-search-outline" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/vision' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/vision' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="mdi:image-search-outline" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/vision' ? 'primary' : 'info'" size="large">{{
           $t('common.vision') }}</el-text>
         </router-link>
         <!-- 生图 -->
         <router-link to="/image"
-          :class="['flex flex-col items-center justify-center', route.path === '/image' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:image-plus-outline" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/image' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/image' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="mdi:image-plus-outline" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/image' ? 'primary' : 'info'" size="large">{{
           $t('common.image') }}</el-text>
         </router-link>
         <!-- 语音 -->
         <router-link to="/voice"
-          :class="['flex flex-col items-center justify-center', route.path === '/voice' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:microphone-outline" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/voice' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/voice' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="mdi:microphone-outline" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/voice' ? 'primary' : 'info'" size="large">{{
           $t('common.voice') }}</el-text>
         </router-link>
         <!-- 视频 -->
         <router-link to="/video"
-          :class="['flex flex-col items-center justify-center', route.path === '/video' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:video-outline" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/video' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/video' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="mdi:video-outline" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/video' ? 'primary' : 'info'" size="large">{{
           $t('common.video') }}</el-text>
         </router-link>
       </div>
       <el-divider />
       <!-- 底部按钮区域：下载、历史、设置 -->
-      <div class="p-4 no-drag flex flex-col items-center space-y-6">
+      <div class="p-4 no-drag flex flex-col items-start space-y-6">
         <!-- 下载 -->
         <router-link to="/download"
-          :class="['flex flex-col items-center justify-center', route.path === '/download' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:download" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/download' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/download' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="mdi:download" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/download' ? 'primary' : 'info'" size="large">{{
           $t('common.download') }}</el-text>
         </router-link>
         <!-- 历史 -->
         <router-link to="/history"
-          :class="['flex flex-col items-center justify-center', route.path === '/history' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="mdi:history" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/history' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/history' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="mdi:history" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/history' ? 'primary' : 'info'" size="large">{{
           $t('common.history') }}</el-text>
         </router-link>
         <!-- 设置 -->
         <router-link to="/settings"
-          :class="['flex flex-col items-center justify-center', route.path === '/settings' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
-          <Icon icon="radix-icons:gear" width="24" height="24" />
-          <el-text class="mx-1 select-none" :type="route.path === '/settings' ? 'primary' : 'info'" size="small">{{
+          :class="['flex flex-row items-center justify-start px-4', route.path === '/settings' ? 'text-[var(--el-color-primary)]' : 'text-gray-500 hover:text-gray-800']">
+          <Icon icon="radix-icons:gear" width="24" height="24" class="mr-2" />
+          <el-text class="select-none" :type="route.path === '/settings' ? 'primary' : 'info'" size="large">{{
           $t('common.settings') }}</el-text>
         </router-link>
       </div>

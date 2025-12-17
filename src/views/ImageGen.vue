@@ -169,9 +169,9 @@ function toSafeFileUrl(localPath: string) {
 
 const openImagesDir = async () => {
   try {
-    await window.electronAPI.openImagesDir();
+    await (window as any).electronAPI.openDownloadsDir();
   } catch (e) {
-    console.error("[ImageGen] openImagesDir error:", e);
+    console.error("[ImageGen] openDownloadsDir error:", e);
   }
 };
 

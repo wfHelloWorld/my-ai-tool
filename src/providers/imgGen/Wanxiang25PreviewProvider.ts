@@ -221,6 +221,7 @@ export class Wanxiang25PreviewProvider {
   private async getOutputPath(index: number): Promise<string> {
     // 使用系统默认“下载”目录
     const downloadsPath = app.getPath("downloads");
+    // const imagesDir = path.join(app.getPath("userData"), "images"); // Reverted: separate cache vs download
     const dir = this.outDirName ? path.join(downloadsPath, this.outDirName) : downloadsPath;
     await fs.mkdir(dir, { recursive: true });
     const filename = `wan25_result_${Date.now()}_${index}.png`;

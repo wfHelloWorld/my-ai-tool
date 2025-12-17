@@ -66,9 +66,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
   getImagesDirPath: async (): Promise<string> =>
     ipcRenderer.invoke("get-images-dir-path"),
 
-  // 打开 images 目录（系统文件管理器）
+  // 打开 images 目录（系统文件管理器）-> 实际上是 Cache 目录
   openImagesDir: async (): Promise<{ success: boolean; error: string | null }> =>
     ipcRenderer.invoke("open-images-dir"),
+
+  // 打开下载/生成图片目录
+  openDownloadsDir: async (): Promise<{ success: boolean; error: string | null }> =>
+    ipcRenderer.invoke("open-downloads-dir"),
 
   // 缩放控制
   getZoomFactor: () => ipcRenderer.invoke("get-zoom-factor"),

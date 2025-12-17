@@ -79,7 +79,15 @@ export class IpcService {
     });
 
     // 打开输出图片目录（系统“下载”目录下的 images 子目录）
+    // 注意：此方法现已更名为 open-downloads-dir 以避免歧义，保留此旧名称但指向缓存目录供 Settings 使用
     ipcMain.handle("open-images-dir", async () => {
+      const dir = this.fileService.getImagesDirPath();
+      const result = await shell.openPath(dir);
+      return { success: result === "", error: result || null };
+    });
+
+    // 打开下载/生成图片目录
+    ipcMain.handle("open-downloads-dir", async () => {
       const dir = this.fileService.getDownloadsImagesDirPath();
       const result = await shell.openPath(dir);
       return { success: result === "", error: result || null };

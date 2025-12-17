@@ -296,6 +296,9 @@ const removeImage = () => {
   }
 };
 const handleKeydown = (event: KeyboardEvent) => {
+  // 正在使用输入法时（isComposing 为 true），回车仅用于确认输入，不发送消息
+  if (event.isComposing) return;
+
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault(); // 阻止默认换行
     onCreate();

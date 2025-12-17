@@ -1,3 +1,14 @@
+# 通义万相-通用图像编辑2.1
+
+`wanx2.1-imageedit`
+
+## 相关指南
+
+
+[图像编辑-通义万相 2.1](https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.359f7b08CpsoxU&tab=api#/api/?type=model&url=2868981)
+
+[使用细节](https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.359f7b08CpsoxU&tab=doc#/doc/?type=model&url=2874281)
+
 #### 功能介绍
 该模型通过简单的指令即可实现多样化的图像编辑，适用于扩图、去水印、风格迁移、图像修复、图像美化等场景。当前支持以下功能：
 
@@ -21,8 +32,6 @@
    - 线稿生图：先提取输入图像的线稿，再参考线稿生成图像
    - 参考卡通形象生图
 
-#### 相关指南
-- [图像编辑-通义万相 2.1](https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.359f7b08CpsoxU&tab=api#/api/?type=model&url=2868981)
 
 #### 模型概览
 

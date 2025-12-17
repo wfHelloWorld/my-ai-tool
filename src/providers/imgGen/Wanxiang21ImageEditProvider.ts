@@ -9,17 +9,25 @@ import { lookup } from "mime-types";
  */
 export interface Wan21ImageEditPayload {
   prompt: string;
-  imagePaths: string[]; // 本地绝对路径或 dataURL（第1张作为 base_image_url）
-  functionMode: string; // 编辑模式，例如 "instruction", "style_ref" 等
-  n?: number; // 生成数量，默认 1
-  seed?: number; // 随机种子
-  size?: string; // 图片尺寸
+  imagePaths: string[]; // [0]: base_image, [1]: mask_image (optional)
+  functionMode: string; // "stylization_all", "description_edit", etc.
+  n?: number; // 1~4
+  seed?: number;
+  // optional parameters
+  strength?: number; // 0.0 ~ 1.0
+  upscale_factor?: number; // 1~4
+  top_scale?: number;
+  bottom_scale?: number;
+  left_scale?: number;
+  right_scale?: number;
+  watermark?: boolean;
+
   apiKey?: string;
   outDirName?: string;
   clientId?: string;
   name?: string;
-  createUrl: string; // https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis
-  taskBaseUrl?: string; // https://dashscope.aliyuncs.com/api/v1/tasks
+  createUrl: string;
+  taskBaseUrl?: string;
 }
 
 export interface Wan21ImageEditOptions {
@@ -36,6 +44,27 @@ export type Wan21ImageEditProgress =
   | { stage: "failed"; taskId?: string; message: string }
   | { stage: "timeout"; taskId?: string }
   | { stage: "error"; taskId?: string; message: string };
+
+interface Wan21ImageEditRequestBody {
+  model: string;
+  input: {
+    function: string;
+    base_image_url: string;
+    prompt?: string;
+    mask_image_url?: string;
+  };
+  parameters: {
+    n: number;
+    seed?: number;
+    watermark?: boolean;
+    strength?: number;
+    upscale_factor?: number;
+    top_scale?: number;
+    bottom_scale?: number;
+    left_scale?: number;
+    right_scale?: number;
+  };
+}
 
 export class Wanxiang21ImageEditProvider {
   private apiKey?: string;
@@ -59,25 +88,42 @@ export class Wanxiang21ImageEditProvider {
 
     // 本地图片转 dataURL
     const baseImageUrl = await this.fileToDataUrl(payload.imagePaths[0]);
-    onProgress?.({ stage: "prepared", imageCount: 1 });
+    let maskImageUrl: string | undefined;
+    if (payload.functionMode === 'description_edit_with_mask' && payload.imagePaths.length > 1) {
+      maskImageUrl = await this.fileToDataUrl(payload.imagePaths[1]);
+    }
+    onProgress?.({ stage: "prepared", imageCount: payload.imagePaths.length });
 
     const model = "wanx2.1-imageedit";
     console.log(`[Wanxiang21ImageEditProvider] generate start. model=${model}, function=${payload.functionMode}`);
 
     // 组装请求体
-    const body = {
+    // 注意：function 在 input 中，参数在 parameters 中
+    const body: Wan21ImageEditRequestBody = {
       model,
       input: {
+        function: payload.functionMode || "description_edit",
         base_image_url: baseImageUrl,
         prompt: payload.prompt,
       },
       parameters: {
-        function: payload.functionMode || "instruction",
         n: payload.n ?? 1,
-        ...(payload.seed ? { seed: payload.seed } : {}),
-        ...(payload.size ? { size: payload.size } : {}),
       },
-    } as const;
+    };
+
+    if (maskImageUrl) {
+      body.input.mask_image_url = maskImageUrl;
+    }
+
+    // Optional parameters
+    if (payload.seed !== undefined) body.parameters.seed = payload.seed;
+    if (payload.watermark !== undefined) body.parameters.watermark = payload.watermark;
+    if (payload.strength !== undefined) body.parameters.strength = payload.strength;
+    if (payload.upscale_factor !== undefined) body.parameters.upscale_factor = payload.upscale_factor;
+    if (payload.top_scale !== undefined) body.parameters.top_scale = payload.top_scale;
+    if (payload.bottom_scale !== undefined) body.parameters.bottom_scale = payload.bottom_scale;
+    if (payload.left_scale !== undefined) body.parameters.left_scale = payload.left_scale;
+    if (payload.right_scale !== undefined) body.parameters.right_scale = payload.right_scale;
 
     const created = await this.postJson(createUrl, body, apiKey);
     const taskId = created?.output?.task_id;
@@ -217,6 +263,7 @@ export class Wanxiang21ImageEditProvider {
 
   private async getOutputPath(index: number): Promise<string> {
     const downloadsPath = app.getPath("downloads");
+    // const imagesDir = path.join(app.getPath("userData"), "images"); // Reverted: separate cache vs download
     const dir = this.outDirName ? path.join(downloadsPath, this.outDirName) : downloadsPath;
     await fs.mkdir(dir, { recursive: true });
     const filename = `wan21edit_result_${Date.now()}_${index}.png`;

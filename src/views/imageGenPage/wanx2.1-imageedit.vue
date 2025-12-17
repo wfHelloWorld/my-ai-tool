@@ -240,9 +240,16 @@ const maskInputRef = ref<HTMLInputElement | null>(null);
 const genResultPaths = ref<string[]>([]);
 const isGenerating = ref<boolean>(false);
 
+import { compressImage, DEFAULT_MAX_IMAGE_SIZE } from "../../utils/imageCompression";
+
+// 压缩与大小限制（<= 5MB，阿里云API限制通常为5-10MB，这里保守取5MB，或者使用默认7MB）
+const MAX_SIZE = 7 * 1024 * 1024; // 5MB
+
+
 function toSafeFileUrl(localPath: string) {
   if (!localPath) return "";
-  return `safe-file://${localPath}`;
+  // 使用三斜杠 /// 确保路径被解析为 pathname 而不是 host，从而保留大小写（这对 macOS/Linux 至关重要）
+  return `safe-file:///${encodeURIComponent(localPath)}`;
 }
 
 const openImagesDir = async () => {
@@ -267,7 +274,16 @@ const handleImageSelect = async (e: Event) => {
     const files = inputEl.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
+    let file = files[0];
+    if (file.size > MAX_SIZE) {
+      try {
+        file = await compressImage(file, { targetMaxBytes: MAX_SIZE });
+        console.log("[ImageEdit] auto-compressed image:", { name: file.name, size: file.size });
+      } catch (err) {
+        console.warn("[ImageEdit] compress failed, using original:", err);
+      }
+    }
+
     // 保存到缓存目录
     const savedPath = await (window as any).electronAPI.ensureImageStored(file);
     selectedImagePath.value = savedPath;
@@ -296,7 +312,16 @@ const handleMaskSelect = async (e: Event) => {
     const files = inputEl.files;
     if (!files || files.length === 0) return;
 
-    const file = files[0];
+    let file = files[0];
+    if (file.size > MAX_SIZE) {
+      try {
+        file = await compressImage(file, { targetMaxBytes: MAX_SIZE });
+        console.log("[ImageEdit] auto-compressed mask:", { name: file.name, size: file.size });
+      } catch (err) {
+        console.warn("[ImageEdit] compress mask failed, using original:", err);
+      }
+    }
+
     // 保存到缓存目录
     const savedPath = await (window as any).electronAPI.ensureImageStored(file);
     maskImagePath.value = savedPath;

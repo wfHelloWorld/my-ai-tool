@@ -22,9 +22,16 @@ export class ProtocolService {
   private registerSafeFileProtocol() {
     protocol.handle("safe-file", async (request) => {
       // 取出自定义协议后的原始本地路径，并进行解码与规范化（Windows 下处理反斜杠与盘符）
-      const rawPath = decodeURIComponent(
+      let rawPath = decodeURIComponent(
         request.url.slice("safe-file://".length)
       );
+
+      // Windows下，rawPath可能是 /C:\Users\... 这种形式，path.normalize会保留开头的/导致解析错误
+      // 如果是 Windows 且路径以 / 开头后接盘符，去掉开头的 /
+      if (process.platform === 'win32' && /^\/[a-zA-Z]:/.test(rawPath)) {
+        rawPath = rawPath.slice(1);
+      }
+
       const normalizedPath = path.normalize(rawPath);
 
       // 读取文件并返回响应，避免在不同平台上对 file:// 的支持差异

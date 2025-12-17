@@ -135,9 +135,7 @@
       </template>
       <div class="demo-collapse p-4 log-pane">
         <el-scrollbar style="height: 100%">
-          <div class="prose prose-slate prose-headings:my-2 prose-pre:p-0">
-            <vue-markdown :source="logMd" :plugins="plugins" />
-          </div>
+          <MarkdownViewer :source="logMd" />
         </el-scrollbar>
       </div>
     </el-tab-pane>
@@ -152,15 +150,7 @@ import { Icon } from "@iconify/vue";
 import { useI18nStore } from "../stores/useI18nStore";
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
-import VueMarkdown from "vue-markdown-render";
-import MarkdownItAnchor from "markdown-it-anchor";
-import markdownItHighlightjs from "markdown-it-highlightjs";
-import "highlight.js/styles/github.css";
-import hljs from "highlight.js/lib/core";
-import javascript from "highlight.js/lib/languages/javascript";
-import typescript from "highlight.js/lib/languages/typescript";
-import css from "highlight.js/lib/languages/css";
-import xml from "highlight.js/lib/languages/xml";
+import MarkdownViewer from "../components/MarkdownViewer.vue";
 
 const i18nStore = useI18nStore();
 const { t } = useI18n();
@@ -182,16 +172,6 @@ const currentConfig = reactive<AppConfig>({
   language: "zh",
   fontSize: 1,
 });
-
-// 注册需要的代码高亮语言（与消息列表保持一致）
-hljs.registerLanguage("javascript", javascript);
-hljs.registerLanguage("typescript", typescript);
-hljs.registerLanguage("css", css);
-hljs.registerLanguage("html", xml);
-hljs.registerLanguage("vue", xml);
-
-// Markdown 插件（锚点 + 代码高亮）
-const plugins = [MarkdownItAnchor, markdownItHighlightjs];
 
 // 版本日志内容（运行时加载）
 const logMd = ref("");

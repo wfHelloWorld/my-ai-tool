@@ -2,9 +2,13 @@
   <div class="h-full" ref="outerContainer">
     <el-splitter style="height: 100%">
       <el-splitter-panel :min="300">
-        <!-- <div class="h-full w-[90%] pl-[10%] flex items-center justify-center">
-          <ProviderSelect v-model="currentProdiver" @update:model-value="onModelChange" />
-        </div> -->
+        <div class="h-full w-full">
+          <el-scrollbar style="height: 100%">
+            <div class="p-4">
+              <MarkdownViewer :source="wan25PreviewMd" />
+            </div>
+          </el-scrollbar>
+        </div>
       </el-splitter-panel>
       <el-splitter-panel v-model:size="rightPaneSize" :min="260" @update:size="onRightSizeUpdate">
         <el-splitter layout="vertical" style="height: 100%">
@@ -107,7 +111,8 @@
 
 <script lang="ts" setup>
 import { ProviderProps } from "src/types";
-import ProviderSelect from "../components/ProviderSelect.vue";
+import MarkdownViewer from "../components/MarkdownViewer.vue";
+import wan25PreviewMd from "../common/md/imageGen/wan2.5-i2i-preview.md?raw";
 import { computed, onMounted, onUnmounted, ref, reactive, toRaw } from "vue";
 import MessageInputChat from "../components/MessageInputChat.vue";
 import ConversationList from "../components/ConversationList.vue";
@@ -121,7 +126,6 @@ const conversationsStore = useConversationStore();
 
 const router = useRouter();
 const input = ref("");
-const currentProdiver = ref("");
 const outerContainer = ref<HTMLElement | null>(null);
 const getClampedPercent = (n: number) => Math.max(10, Math.min(90, Math.round(n)));
 const getStoredPercentStr = () => {
@@ -299,10 +303,6 @@ const removeSelectedImage = (index: number) => {
   } catch (err) {
     console.error("[ImageGen] removeSelectedImage error:", err);
   }
-};
-
-const onModelChange = () => {
-  console.log("选择变化:", currentProdiver.value);
 };
 
 onMounted(async () => {

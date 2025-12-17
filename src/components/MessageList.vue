@@ -64,7 +64,7 @@
               class="h-50 object-cover rounded block"
             />
             <div class="prose prose-slate prose-headings:my-2 prose-pre:p-0">
-              <vue-markdown :source="message.content" :plugins="plugins" />
+              <MarkdownViewer :source="message.content" />
             </div>
           </div>
           <!-- 加载中的处理 -->
@@ -82,7 +82,7 @@
             <template v-else>
               <!-- {{ message.content }} -->
               <div class="prose prose-slate prose-headings:my-2 prose-pre:p-0">
-                <vue-markdown :source="message.content" :plugins="plugins" />
+                <MarkdownViewer :source="message.content" />
               </div>
             </template>
           </div>
@@ -96,25 +96,9 @@
 import { Icon } from "@iconify/vue";
 import { MessageProps } from "../types";
 import dayjs from "dayjs";
-import VueMarkdown from "vue-markdown-render";
-import MarkdownItAnchor from "markdown-it-anchor";
-import markdownItHighlightjs from "markdown-it-highlightjs";
-import 'highlight.js/styles/github.css';
-import hljs from 'highlight.js/lib/core';
-import javascript from 'highlight.js/lib/languages/javascript';
-import typescript from 'highlight.js/lib/languages/typescript';
-import css from 'highlight.js/lib/languages/css';
-import xml from 'highlight.js/lib/languages/xml';
+import MarkdownViewer from "./MarkdownViewer.vue";
 import { onMounted, ref } from "vue";
 import { ElMessage } from "element-plus";
-import MarkdownIt from "markdown-it";
-
-// Register languages with highlight.js
-hljs.registerLanguage('javascript', javascript);
-hljs.registerLanguage('typescript', typescript);
-hljs.registerLanguage('css', css);
-hljs.registerLanguage('html', xml);
-hljs.registerLanguage('vue', xml); // Use XML for Vue files
 
 /**
  * 下划线 "_" 表示是私有变量
@@ -126,33 +110,6 @@ defineExpose({
   ref: _ref,
 });
 
-// 自定义一键复制按钮(自定义一个plugins)
-function markdownItCopyButton(md: MarkdownIt) {
-  // 保存原始 fence 渲染函数
-  const defaultFence = md.renderer.rules.fence!.bind(md.renderer.rules);
-
-  md.renderer.rules.fence = (tokens, idx, options, env, self) => {
-    const token = tokens[idx];
-    const code = token.content;
-
-    // 调用原始渲染函数，获取高亮后的代码块 HTML
-    const highlightedCode = defaultFence(tokens, idx, options, env, self);
-
-    // 在高亮代码块外层包裹复制按钮和容器
-    return `
-      <div class="code-block-wrapper" style="position: relative;">
-        <button class="copy-btn" data-code="${encodeURIComponent(code)}">复制代码</button>
-        ${highlightedCode}
-      </div>
-    `;
-  };
-}
-
-const plugins = [
-  MarkdownItAnchor,
-  markdownItHighlightjs,
-  markdownItCopyButton, // 自定义的复制按钮插件
-];
 defineProps<{ messages: MessageProps[] }>();
 
 // 统一构造跨平台安全的图片地址（Windows/macOS 都适用）
@@ -175,43 +132,10 @@ function copyMessageContent(content: string) {
 }
 
 onMounted(() => {
-  document.addEventListener("click", (e) => {
-    const target = e.target as HTMLElement;
-    if (target.classList.contains("copy-btn")) {
-      const code = decodeURIComponent(target.getAttribute("data-code") || "");
-      if (!code) return;
-
-      navigator.clipboard.writeText(code).then(() => {
-        target.textContent = "已复制";
-        setTimeout(() => {
-          target.textContent = "复制";
-        }, 2000);
-      });
-    }
-  });
+  // 移除全局监听，避免冲突或重复监听
 });
 </script>
 
 <style>
-.code-block-wrapper {
-  position: relative;
-  overflow: visible; /* 确保按钮不会被裁剪 */
-}
-
-.copy-btn {
-  position: absolute;
-  left: 0px;
-  top: -1rem;
-  padding: 1px 8px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  border: none;
-  background-color: rgba(255, 255, 255, 0.6);
-  border-radius: 4px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-  z-index: 10;
-}
-.copy-btn:hover {
-  background-color: rgb(218, 255, 232);
-}
+/* 移除局部样式，改用 MarkdownViewer 组件内部样式 */
 </style>

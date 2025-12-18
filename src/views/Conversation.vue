@@ -77,15 +77,15 @@
 						<span class="cursor-help">内容重复度</span>
 					</el-tooltip>
 					<div class="flex items-center gap-2">
-						<el-input-number
-							v-if="extraParams.enable_presence_penalty"
-							v-model="extraParams.presence_penalty"
-							:step="0.1"
-							:min="-2"
-							:max="2"
-							class="!w-28"
-							size="small"
-						/>
+						<div v-if="extraParams.enable_presence_penalty" class="w-32 mr-2">
+							<el-slider
+								v-model="extraParams.presence_penalty"
+								:min="-2"
+								:max="2"
+								:step="0.1"
+								size="small"
+							/>
+						</div>
 						<el-switch v-model="extraParams.enable_presence_penalty" />
 					</div>
 				</div>

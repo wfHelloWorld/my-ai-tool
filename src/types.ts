@@ -36,18 +36,36 @@ export interface MessageProps {
 }
 
 export interface ChatMessageProps {
-  role: string;
-  content: string;
-  firstImagePath?: string;
-  lastImagePath?: string;
+	role: string;
+	content: string;
+	firstImagePath?: string;
+	lastImagePath?: string;
+}
+
+export type ChatSearchStrategy = "turbo" | "max" | "agent";
+
+export interface ChatSearchOptions {
+	forced_search?: boolean;
+	search_strategy?: ChatSearchStrategy;
+	enable_search_extension?: boolean;
+}
+
+export interface ChatExtraParams {
+	enable_search?: boolean;
+	enable_thinking?: boolean;
+	search_options?: ChatSearchOptions;
+	presence_penalty?: number;
+	enable_presence_penalty?: boolean;
+	enable_code_interpreter?: boolean;
 }
 
 export interface CreateChatProps {
-  messages: ChatMessageProps[];
-  providerName: string;
-  selectedModel: string;
-  messageId: number;
-  providerUrl?: string;
+	messages: ChatMessageProps[];
+	providerName: string;
+	selectedModel: string;
+	messageId: number;
+	providerUrl?: string;
+	extraParams?: ChatExtraParams;
 }
 
 export interface MessagesStreamData {

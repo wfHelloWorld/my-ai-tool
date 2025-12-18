@@ -1,6 +1,6 @@
 import { BaseProvider } from "./BaseProvider";
 import OpenAI from "openai";
-import { ChatMessageProps, UniversalChunkProps } from "../types";
+import { ChatMessageProps, UniversalChunkProps, ChatExtraParams } from "../types";
 import { convertMessages } from "../hellpler";
 
 export class OpenAiProvider extends BaseProvider {
@@ -13,22 +13,47 @@ export class OpenAiProvider extends BaseProvider {
       baseURL,
     });
   }
-  async chat(messages: ChatMessageProps[], model: string) {
-    // 转换图片
-    const convertedMessages = await convertMessages(messages);
+	async chat(messages: ChatMessageProps[], model: string, extraParams?: ChatExtraParams) {
+		const convertedMessages = await convertMessages(messages);
 
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    const stream = await this.client.chat.completions.create({
-      model, // 模型列表：https://help.aliyun.com/zh/model-studio/getting-started/models
-      messages: convertedMessages as {
-        role: "user" | "assistant";
-        content: string;
-      }[],
-      enable_search: true,
-      stream: true,
-      enable_thinking: true,
-    });
+		const enableSearch = extraParams?.enable_search ?? false;
+		const enableThinking = extraParams?.enable_thinking ?? false;
+		const presencePenalty = extraParams?.presence_penalty;
+		const enablePresencePenalty = extraParams?.enable_presence_penalty ?? false;
+		const enableCodeInterpreter = extraParams?.enable_code_interpreter ?? false;
+		const searchOptions = extraParams?.search_options;
+
+		// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+		// @ts-ignore
+		const stream = await this.client.chat.completions.create({
+			model,
+			messages: convertedMessages as {
+				role: "user" | "assistant";
+				content: string;
+			}[],
+			stream: true,
+			...(enableSearch
+				? {
+					enable_search: true,
+					search_options: {
+						...(searchOptions?.forced_search !== undefined
+							? { forced_search: searchOptions.forced_search }
+							: {}),
+						...(searchOptions?.search_strategy
+							? { search_strategy: searchOptions.search_strategy }
+							: {}),
+						...(searchOptions?.enable_search_extension !== undefined
+							? { enable_search_extension: searchOptions.enable_search_extension }
+							: {}),
+					},
+				}
+				: {}),
+			...(enableThinking ? { enable_thinking: true } : {}),
+			...(enablePresencePenalty && typeof presencePenalty === "number" ? { presence_penalty: presencePenalty } : {}),
+			...(enableCodeInterpreter && enableThinking && model === "qwen3-max-preview"
+				? { enable_code_interpreter: true }
+				: {}),
+		});
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const self = this;
     return {

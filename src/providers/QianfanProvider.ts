@@ -1,6 +1,6 @@
 import { BaseProvider } from "./BaseProvider";
 import { ChatCompletion } from "@baiducloud/qianfan";
-import { BaiduChunkProps, ChatMessageProps } from "../types";
+import { BaiduChunkProps, ChatMessageProps, ChatExtraParams } from "../types";
 
 export class QianfanProvider extends BaseProvider {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,7 +13,7 @@ export class QianfanProvider extends BaseProvider {
       ENABLE_OAUTH: false,
     });
   }
-  async chat(messages: ChatMessageProps[], model: string) {
+	async chat(messages: ChatMessageProps[], model: string, _extraParams?: ChatExtraParams) {
     const stream = await this.client.chat(
       {
         messages: messages as {

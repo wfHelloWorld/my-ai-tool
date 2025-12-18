@@ -17,8 +17,8 @@ export class ChatService {
   /**
    * 处理聊天请求
    */
-  async handleChatRequest(data: CreateChatProps) {
-    const { providerName, messages, messageId, selectedModel } = data;
+	async handleChatRequest(data: CreateChatProps) {
+		const { providerName, messages, messageId, selectedModel, extraParams } = data;
     console.log("发起对话");
 
     // 获取密钥
@@ -30,16 +30,16 @@ export class ChatService {
       dashscopeUrl = data.providerUrl;
     }
     console.log("🚀 ~ ChatService ~ handleChatRequest ~ dashscopeUrl:", dashscopeUrl)
-    const provider = createProvider(
-      providerName,
-      DASHSCOPE_API_KEY || "",
-      dashscopeUrl,
+		const provider = createProvider(
+			providerName,
+			DASHSCOPE_API_KEY || "",
+			dashscopeUrl,
       DEEPSEEK_API_KEY || "",
       DEEPSEEK_URL || ""
     );
 
-    try {
-      const stream = await provider.chat(messages, selectedModel);
+		try {
+			const stream = await provider.chat(messages, selectedModel, extraParams);
       for await (const chunk of stream) {
         const content: MessagesStreamData = {
           messageId,

@@ -8,12 +8,16 @@
 // 3. 抽象方法 这里 transformResponse 是抽象方法，不能有 {} 方法体。
 // 抽象方法只声明签名，不写实现。
 
-import { ChatMessageProps, UniversalChunkProps } from "../types";
+import { ChatMessageProps, UniversalChunkProps, ChatExtraParams } from "../types";
 
 // 继承抽象类的子类必须实现所有抽象方法，否则子类也必须声明为抽象类。
 export abstract class BaseProvider {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  abstract chat(messages: ChatMessageProps[], modelName: string): Promise<AsyncIterable<UniversalChunkProps>>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  protected abstract transformResponse(chunk: any): UniversalChunkProps 
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	abstract chat(
+		messages: ChatMessageProps[],
+		modelName: string,
+		extraParams?: ChatExtraParams
+	): Promise<AsyncIterable<UniversalChunkProps>>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	protected abstract transformResponse(chunk: any): UniversalChunkProps;
 }

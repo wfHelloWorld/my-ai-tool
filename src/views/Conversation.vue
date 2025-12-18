@@ -22,12 +22,93 @@
       <el-splitter-panel v-model:size="rightPaneSize" :min="260" @update:size="onRightSizeUpdate">
         <el-splitter layout="vertical" style="height: 100%">
           <el-splitter-panel size="70%">
-            <div class="h-full flex flex-col">
-              <div class="pt-5 shrink-0"></div>
-              <div class="flex-1 overflow-y-auto px-[5%]">
-                <ConversationList />
-              </div>
-            </div>
+		<div class="h-full flex flex-col">
+			<div class="pt-5 shrink-0"></div>
+			<div class="flex-1 overflow-y-auto px-[5%] pb-4 text-sm text-gray-700 flex flex-col gap-3">
+				<div class="flex items-center justify-between">
+					<div class="flex items-center gap-2">
+						<el-tooltip placement="top" effect="dark">
+							<template #content>
+								<div>是否开启联网搜索，可能增加 Token 消耗。</div>
+							</template>
+							<span class="cursor-help">联网搜索</span>
+						</el-tooltip>
+					</div>
+					<el-switch v-model="extraParams.enable_search" />
+				</div>
+				<div v-if="extraParams.enable_search" class="ml-4 flex flex-col gap-2">
+					<div class="flex items-center justify-between">
+						<el-tooltip placement="top" effect="dark">
+							<template #content>
+								<div>强制搜索，模型每次都会发起联网搜索。</div>
+							</template>
+							<span class="cursor-help">强制搜索</span>
+						</el-tooltip>
+						<el-switch v-model="extraParams.search_options.forced_search" />
+					</div>
+					<div class="flex items-center justify-between">
+						<el-tooltip placement="top" effect="dark">
+							<template #content>
+								<div>搜索策略：turbo 兼顾速度，max 更全面，agent 多轮检索。</div>
+							</template>
+							<span class="cursor-help">搜索策略</span>
+						</el-tooltip>
+						<el-select v-model="extraParams.search_options.search_strategy" class="!w-40" size="small">
+							<el-option label="turbo" value="turbo" />
+							<el-option label="max" value="max" />
+							<el-option label="agent" value="agent" />
+						</el-select>
+					</div>
+					<div class="flex items-center justify-between">
+						<el-tooltip placement="top" effect="dark">
+							<template #content>
+								<div>开启垂域搜索，仅在启用联网搜索时生效。</div>
+							</template>
+							<span class="cursor-help">垂域搜索</span>
+						</el-tooltip>
+						<el-switch v-model="extraParams.search_options.enable_search_extension" />
+					</div>
+				</div>
+				<div class="flex items-center justify-between">
+					<el-tooltip placement="top" effect="dark">
+						<template #content>
+							<div class="max-w-xs">在创意写作或头脑风暴等需要多样性、趣味性或创造力的场景中，建议调高该值；<br>在技术文档或正式文本等强调一致性与术语准确性的场景中，建议调低该值。</div>
+						</template>
+						<span class="cursor-help">内容重复度</span>
+					</el-tooltip>
+					<div class="flex items-center gap-2">
+						<el-input-number
+							v-if="extraParams.enable_presence_penalty"
+							v-model="extraParams.presence_penalty"
+							:step="0.1"
+							:min="-2"
+							:max="2"
+							class="!w-28"
+							size="small"
+						/>
+						<el-switch v-model="extraParams.enable_presence_penalty" />
+					</div>
+				</div>
+				<div class="flex items-center justify-between">
+					<el-tooltip placement="top" effect="dark">
+						<template #content>
+							<div>仅 qwen3-max-preview 且开启思考模式时可用。</div>
+						</template>
+						<span class="cursor-help">代码解释器</span>
+					</el-tooltip>
+					<el-switch v-model="extraParams.enable_code_interpreter" />
+				</div>
+				<div class="flex items-center justify-between">
+					<el-tooltip placement="top" effect="dark">
+						<template #content>
+							<div>启用思考模式，对应 enable_thinking。</div>
+						</template>
+						<span class="cursor-help">思考模式</span>
+					</el-tooltip>
+					<el-switch v-model="extraParams.enable_thinking" />
+				</div>
+			</div>
+		</div>
           </el-splitter-panel>
           <el-splitter-panel>
             <div class="h-full w-full flex items-center justify-center">
@@ -42,22 +123,23 @@
 
 <script lang="ts" setup>
 import {
-  ConversationPorps,
-  MessageProps,
-  MessageStatus,
-  MessageListInstance,
+	ConversationPorps,
+	MessageProps,
+	MessageStatus,
+	MessageListInstance,
 } from "../types";
 import MessageList from "../components/MessageList.vue";
 import MessageInputChat from "../components/MessageInputChat.vue";
 import ConversationList from "../components/ConversationList.vue";
 import { useRoute } from "vue-router";
 import {
-  ref,
-  watch,
-  onMounted,
-  computed,
-  nextTick,
-  onBeforeUnmount,
+	ref,
+	watch,
+	onMounted,
+	computed,
+	nextTick,
+	onBeforeUnmount,
+	reactive,
 } from "vue";
 import { useProvidersStore } from "../stores/useProviderStore";
 import dayjs from "dayjs";
@@ -98,6 +180,21 @@ const rightPaneSize = ref<string>(getStoredPercentStr());
 const conversationsStore = useConversationStore();
 const messagesStore = useMessageStore();
 const providersStore = useProvidersStore();
+
+const EXTRA_KEY = "chatExtraParams";
+
+const extraParams = reactive({
+	enable_search: false,
+	enable_thinking: true,
+	search_options: {
+		forced_search: false,
+		search_strategy: "turbo",
+		enable_search_extension: false,
+	},
+	presence_penalty: 1.5,
+	enable_presence_penalty: false,
+	enable_code_interpreter: false,
+});
 /**
  * 组合的多组聊天信息,可以将上下文一起发送给大模型
  */
@@ -161,8 +258,20 @@ const conversation = computed(() =>
 // messages 数据
 const filteredMessages = computed(() => messagesStore.items);
 let lastQuestion = computed(() =>
-  messagesStore.getLastQuestion(conversationId.value)
+	messagesStore.getLastQuestion(conversationId.value)
 );
+
+onMounted(() => {
+	try {
+		const saved = localStorage.getItem(EXTRA_KEY);
+		if (saved) {
+			const parsed = JSON.parse(saved);
+			if (parsed && typeof parsed === "object") {
+				Object.assign(extraParams, parsed);
+			}
+		}
+	} catch (e) {}
+});
 
 // 初始化的情况,接收到一个 messageId
 const initMessageId = parseInt(route.query.init as string);
@@ -187,14 +296,16 @@ const creatingInitialMessage = async () => {
       (p) => p.id === (conversation.value?.providerId as number)
     );
     // 调用 start-chat接口,发起一次对话
-    if (provider) {
-      await window.electronAPI.startChat({
-        messageId: newMessageId,
-        providerName: provider.label,
-        selectedModel: conversation.value?.selectedModel as string,
-        messages: sendedMessage.value,
-        providerUrl: provider.url,
-      });
+		if (provider) {
+			const extraParamsPayload = JSON.parse(JSON.stringify(extraParams));
+			await window.electronAPI.startChat({
+				messageId: newMessageId,
+				providerName: provider.label,
+				selectedModel: conversation.value?.selectedModel as string,
+				messages: sendedMessage.value,
+				providerUrl: provider.url,
+				extraParams: extraParamsPayload,
+			});
     } else {
       // 找不到供应商，直接把错误写入该条消息并结束 loading
       await messagesStore.updateMessage(newMessageId, {

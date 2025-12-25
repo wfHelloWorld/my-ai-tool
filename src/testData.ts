@@ -103,4 +103,16 @@ export const providers: ProviderProps[] = [
     type: "imageGen",
     url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis"
   },
+  {
+    id: 10,
+    name: "wan2.6-image",
+    title: "通义万相2.6-图像生成",
+    desc: "通义万相2.6-图像生成，全能图像生成模型，支持图文一体化推理生成，具备多图创意融合、商用级一致性、美学要素迁移与镜头光影精确控制，全面提升图像生成的一致性、可控性和表现力。",
+    avatar: "bx:basketball",
+    createdAt: "2025-08-27T08:00:00Z",
+    updatedAt: "2025-08-27T08:00:00Z",
+    label: "阿里云百炼",
+    type: "imageGen",
+    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
+  },
 ];

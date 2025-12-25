@@ -19,6 +19,7 @@ import History from "./views/History.vue";
 import Vision from "./views/Vision.vue";
 import ImageGen from "./views/ImageGen.vue";
 import Wanx21ImageEdit from "./views/imageGenPage/wanx2.1-imageedit.vue";
+import Wan26Image from "./views/imageGenPage/wan2.6-image.vue";
 import Voice from "./views/Voice.vue";
 import Video from "./views/Video.vue";
 import Download from "./views/Download.vue";
@@ -36,6 +37,7 @@ const routes = [
   { path: "/vision", component: Vision },
   { path: "/image/wan2.5-preview", component: ImageGen },
   { path: "/image/wanx2.1-edit", component: Wanx21ImageEdit },
+  { path: "/image/wan2.6-image", component: Wan26Image },
   { path: "/voice", component: Voice },
   { path: "/video", component: Video },
   { path: "/download", component: Download },

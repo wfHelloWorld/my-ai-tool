@@ -43,15 +43,3 @@
 ## 模型价格
 
 * **图片生成**: 0.2元/每张
-
----
-
-以上是通义万相2.5-图像编辑-Preview的总结文档，涵盖了模型的基本信息、能力以及价格详情。希望对你有所帮助！
-   ```html
-   <body>
-       模式1:单向通信修改Title: <input id="title" placeholder="输入要替换的标签名称"/>
-       <!-- setTitle button -->
-       <button id="btn">同步Set</button>
-       <button id="btnAsync">异步Set</button>
-   </body>
-   ```

@@ -9,6 +9,10 @@
 
 [使用细节](https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.359f7b08CpsoxU&tab=doc#/doc/?type=model&url=2874281)
 
+
+## 价格
+0.14元/张
+
 #### 功能介绍
 该模型通过简单的指令即可实现多样化的图像编辑，适用于扩图、去水印、风格迁移、图像修复、图像美化等场景。当前支持以下功能：
 

@@ -2,6 +2,9 @@
 
 [通义万相2.5-图像编辑-Preview](https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.359f7b08CpsoxU&tab=api#/api/?type=model&url=2982258)
 
+## 模型价格
+
+* **图片生成**: 0.2元/每张
 
 ## 模型介绍
 
@@ -40,6 +43,4 @@
 | 批量推理         | ❌        |
 | 模型调优         | ❌        |
 
-## 模型价格
 
-* **图片生成**: 0.2元/每张

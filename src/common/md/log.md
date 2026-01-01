@@ -1,4 +1,4 @@
-# Version: 1.0.7 未发布
+# Version: 1.0.7 
 - chat 的控制参数
 - 图片预览
 - 集成 wan2.6-image 模型

@@ -6,7 +6,8 @@
 
 云百炼地址: [通义万相2.6-图像生成](https://bailian.console.aliyun.com/?spm=5176.12818093_47.overview_recent.1.514f16d0IhinB4&tab=model#/model-market/detail/wan2.6-image)
 
-价格:0.2元/张
+## 价格:
+0.2元/张
 
 ## 核心功能
 

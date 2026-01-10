@@ -1,7 +1,5 @@
-import { protocol } from 'electron';
-import { lookup } from 'mime-types';
+import { protocol, net } from 'electron';
 import url from 'url';
-import fs from 'fs/promises';
 import path from 'node:path';
 
 /**
@@ -20,7 +18,7 @@ export class ProtocolService {
    * 用于安全地加载本地文件
    */
   private registerSafeFileProtocol() {
-    protocol.handle("safe-file", async (request) => {
+    protocol.handle("safe-file", (request) => {
       // 取出自定义协议后的原始本地路径，并进行解码与规范化（Windows 下处理反斜杠与盘符）
       let rawPath = decodeURIComponent(
         request.url.slice("safe-file://".length)
@@ -34,20 +32,16 @@ export class ProtocolService {
 
       const normalizedPath = path.normalize(rawPath);
 
-      // 读取文件并返回响应，避免在不同平台上对 file:// 的支持差异
-      try {
-        const data = await fs.readFile(normalizedPath);
-        const mimeType = lookup(normalizedPath) || 'application/octet-stream';
-        return new Response(data, {
-          headers: {
-            'Content-Type': String(mimeType),
-          },
-        });
-      } catch (err: any) {
-        const message = err?.message || 'File not found';
-        // 兜底：返回 404 与简短说明，便于调试
-        return new Response(message, { status: 404 });
-      }
+      // 使用 net.fetch 读取 file:// 协议，Electron 会自动处理 Range 请求和 MIME 类型
+      // 这是支持视频播放（流式传输/拖动进度条）的最佳实践
+      const fileUrl = url.pathToFileURL(normalizedPath).toString();
+      
+      console.log(`[SafeFile] Serving via net.fetch: ${fileUrl}`);
+
+      return net.fetch(fileUrl).catch((err: unknown) => {
+        console.error(`[SafeFile] Error loading ${normalizedPath}:`, err);
+        return new Response('File not found', { status: 404 });
+      });
     });
   }
 }

@@ -61,6 +61,39 @@ export class FileService {
     return path.join(downloadsPath, 'images');
   }
 
+  /** 获取 videos 目录的绝对路径 */
+  getVideosDirPath(): string {
+    const userDataPath = app.getPath('userData');
+    return path.join(userDataPath, 'videos');
+  }
+
+  /** 获取输出目录（系统“下载”目录下的 videos 子目录） */
+  getDownloadsVideosDirPath(): string {
+    const downloadsPath = app.getPath('downloads');
+    return path.join(downloadsPath, 'videos');
+  }
+
+  /**
+   * 将网络视频保存到用户目录
+   * @param url 视频 URL
+   * @param filename 文件名
+   * @returns 新文件路径
+   */
+  async saveVideoFromUrl(url: string, filename: string): Promise<string> {
+    const videosDir = this.getVideosDirPath();
+    await fs.mkdir(videosDir, { recursive: true });
+
+    const safeName = filename || `video-${Date.now()}.mp4`;
+    const newPath = path.join(videosDir, safeName);
+    
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to download video: ${response.statusText}`);
+    
+    const arrayBuffer = await response.arrayBuffer();
+    await fs.writeFile(newPath, Buffer.from(arrayBuffer));
+    return newPath;
+  }
+
   /** 计算 images 缓存目录大小（字节） */
   async getImagesCacheSize(): Promise<number> {
     const imagesDir = this.getImagesDirPath();

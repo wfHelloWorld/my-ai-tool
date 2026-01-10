@@ -5,6 +5,7 @@ import { AppConfig, CreateChatProps, OnUpdatedCallback } from "./types";
 import type { Wan25PreviewPayload, Wan25PreviewProgress } from "./providers/imgGen/Wanxiang25PreviewProvider";
 import type { Wan21ImageEditPayload, Wan21ImageEditProgress } from "./providers/imgGen/Wanxiang21ImageEditProvider";
 import type { Wan26ImagePayload, Wan26ImageProgress } from "./providers/imgGen/Wanxiang2.6ImageProvider";
+import type { Wan26I2VPayload, Wan26I2VProgress } from "./providers/video/wan2.6-i2vProvider";
 
 // 使用TS,这里的接口需把类型添加到window上(interface.d.ts)
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -75,6 +76,18 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openDownloadsDir: async (): Promise<{ success: boolean; error: string | null }> =>
     ipcRenderer.invoke("open-downloads-dir"),
 
+  // 获取 videos 目录绝对路径
+  getVideosDirPath: async (): Promise<string> =>
+    ipcRenderer.invoke("get-videos-dir-path"),
+
+  // 打开 videos 目录
+  openVideosDir: async (): Promise<{ success: boolean; error: string | null }> =>
+    ipcRenderer.invoke("open-videos-dir"),
+
+  // 读取视频文件内容（返回 Buffer）
+  readVideoFile: async (filePath: string): Promise<Uint8Array> =>
+    ipcRenderer.invoke("read-video-file", filePath),
+
   // 缩放控制
   getZoomFactor: () => ipcRenderer.invoke("get-zoom-factor"),
   setZoomFactor: (factor: number) => ipcRenderer.invoke("set-zoom-factor", factor),
@@ -109,6 +122,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     const handler = (_e: Electron.IpcRendererEvent, info: Wan26ImageProgress) => callback(info);
     ipcRenderer.on("wan26-image-progress", handler);
     return () => ipcRenderer.off("wan26-image-progress", handler);
+  },
+
+  // 生视频：万相2.6-i2v
+  startWan26I2V: (payload: Wan26I2VPayload): Promise<string[]> =>
+    ipcRenderer.invoke("wan26-i2v", payload),
+  // 生视频进度订阅（万相2.6-i2v）
+  onWan26I2VProgress: (callback: (info: Wan26I2VProgress) => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, info: Wan26I2VProgress) => callback(info);
+    ipcRenderer.on("wan26-i2v-progress", handler);
+    return () => ipcRenderer.off("wan26-i2v-progress", handler);
   },
 
 

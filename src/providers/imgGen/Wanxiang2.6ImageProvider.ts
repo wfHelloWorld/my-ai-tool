@@ -63,24 +63,17 @@ export class Wanxiang26ImageProvider {
     const { createUrl, taskBaseUrl, taskUrlBuilder } = payload;
     if (!createUrl) throw new Error("createUrl 未提供");
 
-    const rawImagePaths = payload.imagePaths || [];
-    // 过滤无效路径
-    const validImagePaths = rawImagePaths.filter(p => p && typeof p === 'string' && p.trim().length > 0);
+    const imagePaths = payload.imagePaths || [];
+    // 使用图像编辑模式 (enable_interleave=false)，支持文生图和图生图
+    const enable_interleave = false;
     
-    // 动态判断模式：
-    // - 如果没有有效参考图，使用 enable_interleave=true (文生图模式)
-    // - 如果有参考图，使用 enable_interleave=false (图像编辑模式)
-    const enable_interleave = validImagePaths.length === 0;
-
-    console.log(`[Wanxiang26ImageProvider] enable_interleave=${enable_interleave}, validImagePaths=${validImagePaths.length}`);
-
-    if (validImagePaths.length > 4) {
+    if (imagePaths.length > 4) {
       throw new Error("最多支持 4 张参考图");
     }
 
     // 本地图片转 dataURL
     const images = [] as string[];
-    for (const p of validImagePaths) {
+    for (const p of imagePaths) {
       images.push(await this.fileToDataUrl(p));
     }
     onProgress?.({ stage: "prepared", imageCount: images.length });

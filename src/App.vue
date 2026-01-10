@@ -44,12 +44,17 @@
           <span>{{ $t('common.voice') }}</span>
         </el-menu-item>
 
-        <el-menu-item index="/video">
-          <el-icon>
-            <Icon icon="mdi:video-outline" />
-          </el-icon>
-          <span>{{ $t('common.video') }}</span>
-        </el-menu-item>
+        <el-sub-menu index="/video">
+          <template #title>
+            <el-icon>
+              <Icon icon="mdi:video-outline" />
+            </el-icon>
+            <span>{{ $t('common.video') }}</span>
+          </template>
+          <el-menu-item index="/video/wan2.6-i2v">
+            <span>wan2.6-i2v</span>
+          </el-menu-item>
+        </el-sub-menu>
       </el-menu>
 
       <!-- 底部系统菜单（固定） -->

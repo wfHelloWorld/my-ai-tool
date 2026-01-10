@@ -115,4 +115,16 @@ export const providers: ProviderProps[] = [
     type: "imageGen",
     url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation"
   },
+  {
+    id: 11,
+    name: "wan2.6-i2v",
+    title: "万相2.6（有声视频）",
+    desc: "通义万相2.6-图生视频，智能分镜调度支持多镜头叙事，更高品质的声音生成，多人稳定对话，更自然真实音色，最高支持15秒时长生成",
+    avatar: "bx:basketball",
+    createdAt: "2025-08-27T08:00:00Z",
+    updatedAt: "2025-08-27T08:00:00Z",
+    label: "阿里云百炼",
+    type: "video",
+    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis"
+  },
 ];

@@ -25,14 +25,14 @@ export const compressImage = async (
   let width = bitmap.width;
   let height = bitmap.height;
 
-  let scale = Math.min(1, maxDimension / Math.max(width, height));
+  const scale = Math.min(1, maxDimension / Math.max(width, height));
   width = Math.max(1, Math.round(width * scale));
   height = Math.max(1, Math.round(height * scale));
 
   let canvas = document.createElement("canvas");
   canvas.width = width;
   canvas.height = height;
-  let ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas 2D context unavailable");
   ctx.drawImage(bitmap, 0, 0, width, height);
 

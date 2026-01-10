@@ -1,4 +1,5 @@
 import { BrowserWindow, ipcMain, shell } from 'electron';
+import fs from 'fs/promises';
 import { ChatService } from './chatService';
 import { FileService } from './fileService';
 import { configManager } from '../config';
@@ -7,6 +8,7 @@ import { updateMenu, createContextMenu } from '../menu';
 import { Wanxiang25PreviewProvider } from "../providers/imgGen/Wanxiang25PreviewProvider";
 import { Wanxiang21ImageEditProvider, Wan21ImageEditProgress } from "../providers/imgGen/Wanxiang21ImageEditProvider";
 import { Wanxiang26ImageProvider, Wan26ImageProgress } from "../providers/imgGen/Wanxiang2.6ImageProvider";
+import { Wanxiang26I2VProvider, Wan26I2VProgress } from "../providers/video/wan2.6-i2vProvider";
 
 /**
  * IPC服务，负责处理主进程和渲染进程之间的通信
@@ -33,6 +35,7 @@ export class IpcService {
     this.setupContextMenuHandlers();
     this.setupZoomHandlers();
     this.setupImageGenHandlers();
+    this.setupVideoGenHandlers();
   }
 
   /**
@@ -92,6 +95,36 @@ export class IpcService {
       const dir = this.fileService.getDownloadsImagesDirPath();
       const result = await shell.openPath(dir);
       return { success: result === "", error: result || null };
+    });
+
+    // 获取 videos 目录绝对路径
+    ipcMain.handle("get-videos-dir-path", async () => {
+      return this.fileService.getVideosDirPath();
+    });
+
+    // 打开 videos 目录（确保目录存在）
+    ipcMain.handle("open-videos-dir", async () => {
+      const userDir = this.fileService.getVideosDirPath();
+      try { await fs.mkdir(userDir, { recursive: true }); } catch (e) { void e; }
+      let result = await shell.openPath(userDir);
+      if (result !== "") {
+        const dlDir = this.fileService.getDownloadsVideosDirPath();
+        try { await fs.mkdir(dlDir, { recursive: true }); } catch (e) { void e; }
+        result = await shell.openPath(dlDir);
+        return { success: result === "", error: result || null, path: result === "" ? dlDir : userDir };
+      }
+      return { success: true, error: null, path: userDir };
+    });
+
+    // 读取视频文件内容（用于前端 Blob 预览）
+    ipcMain.handle("read-video-file", async (event, filePath: string) => {
+      try {
+        const buffer = await fs.readFile(filePath);
+        return buffer;
+      } catch (err: unknown) {
+        console.error("Read video file error:", err);
+        throw err;
+      }
     });
   }
 
@@ -217,6 +250,42 @@ export class IpcService {
           _event.sender.send("wan26-image-progress", { stage: "error", message: err instanceof Error ? err.message : String(err), clientId: payload?.clientId, name: payload?.name });
         } catch (e) {
           console.warn("[wan26-image] progress send failed in error:", String(e));
+        }
+        throw err;
+      }
+    });
+  }
+
+  /**
+   * 设置视频生成相关的IPC处理程序
+   */
+  private setupVideoGenHandlers() {
+    ipcMain.handle("wan26-i2v", async (_event, payload) => {
+      try {
+        const cfg = await configManager.getConfig();
+        const apiKey = payload?.apiKey || cfg.DASHSCOPE_API_KEY;
+        const provider = new Wanxiang26I2VProvider({ apiKey });
+        console.log("[wan26-i2v] payload:", {
+          ...payload,
+          apiKey: apiKey ? `${String(apiKey).slice(0, 4)}***${String(apiKey).slice(-4)}` : "<missing>",
+        });
+        const clientId = payload?.clientId;
+        const name = payload?.name;
+        const result = await provider.generate(payload, (info: Wan26I2VProgress) => {
+          try {
+            _event.sender.send("wan26-i2v-progress", { ...info, clientId, name });
+          } catch (e) {
+            console.warn("[wan26-i2v] progress send failed:", String(e));
+          }
+        });
+        console.log("[wan26-i2v] result paths:", result);
+        return result;
+      } catch (err) {
+        console.error("[wan26-i2v] error:", err);
+        try {
+          _event.sender.send("wan26-i2v-progress", { stage: "error", message: err instanceof Error ? err.message : String(err), clientId: payload?.clientId, name: payload?.name });
+        } catch (e) {
+          console.warn("[wan26-i2v] progress send failed in error:", String(e));
         }
         throw err;
       }

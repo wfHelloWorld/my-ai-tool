@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, protocol } from "electron";
 import path from "node:path";
 import started from "electron-squirrel-startup";
 import dotenv from "dotenv";
@@ -11,6 +11,21 @@ import { configManager } from "./config";
 
 // 加载环境变量
 dotenv.config();
+
+// 注册自定义协议的特权
+// 必须在 app ready 事件之前调用
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: 'safe-file',
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      corsEnabled: true,
+      stream: true
+    }
+  }
+]);
 
 // 处理Windows安装/卸载时创建/删除快捷方式
 if (started) {

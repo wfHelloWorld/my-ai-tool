@@ -180,8 +180,10 @@ import MessageInputChat from "../../components/MessageInputChat.vue";
 import MarkdownViewer from "../../components/MarkdownViewer.vue";
 import wan26VideoMd from "../../common/md/video/wan2.6-i2v.md?raw";
 import { useWanxiang26VideoStatusStore } from "../../stores/useWanxiang26VideoStatusStore";
+import { useProvidersStore } from "../../stores/useProviderStore";
 
 const wanStore = useWanxiang26VideoStatusStore();
+const providersStore = useProvidersStore();
 const rightPaneSize = ref("70%");
 
 // 参数
@@ -311,6 +313,12 @@ const createTask = async (prompt: string) => {
 
   try {
     const cfg = await (window as any).electronAPI.getConfig();
+    // 从 store 获取 provider 配置
+    if (!providersStore.items.length) {
+      await providersStore.initProvidersStore();
+    }
+    const provider = providersStore.items.find(p => p.name === "wan2.6-i2v");
+    
     const payload = {
       prompt,
       imagePath: imageItem.value.path,
@@ -324,6 +332,7 @@ const createTask = async (prompt: string) => {
       seed: seedInput.value ? Number(seedInput.value) : undefined,
       
       apiKey: cfg?.DASHSCOPE_API_KEY,
+      createUrl: provider?.url, // 传入数据库中的 url
       clientId,
       name: taskName,
     };

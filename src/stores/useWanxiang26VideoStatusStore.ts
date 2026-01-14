@@ -1,14 +1,17 @@
 import { defineStore } from "pinia";
 import { Wan26I2VProgress } from "../providers/video/wan2.6-i2vProvider";
 
-interface TaskItem {
+export interface TaskItem {
+  id?: string;
   clientId: string;
   name: string;
   percentage: number;
   status: "running" | "success" | "failed" | "cancelled";
+  progress?: string;
   logs: Wan26I2VProgress[];
   serverTaskId?: string;
   lastError: string | null;
+  createdAt?: number;
 }
 
 interface LoadingStatusState {
@@ -21,69 +24,88 @@ export const useWanxiang26VideoStatusStore = defineStore("wanxiang26VideoStatus"
   }),
 
   actions: {
+    // 开始任务
     beginTask(clientId: string, name: string) {
-      if (this.tasks.find((t) => t.clientId === clientId)) return;
-      
-      const item: TaskItem = {
+      this.tasks.unshift({
+        id: clientId,
         clientId,
         name,
-        percentage: 0,
         status: "running",
+        progress: "排队中...",
+        percentage: 0,
         logs: [],
+        createdAt: Date.now(),
         lastError: null,
-      };
-      this.tasks.unshift(item);
+      });
     },
 
+    // 追加进度/日志
     append(info: Wan26I2VProgress & { clientId?: string; name?: string }) {
       let task: TaskItem | undefined;
+
       if (info.clientId) {
         task = this.tasks.find((t) => t.clientId === info.clientId);
       }
-      if (!task && 'taskId' in info && info.taskId) {
+      if (!task && "taskId" in info && info.taskId) {
         task = this.tasks.find((t) => t.serverTaskId === info.taskId);
       }
       if (!task) {
         task = this.tasks.find((t) => t.status === "running");
       }
-
       if (!task) return;
 
       task.logs.push(info);
 
-      if ('taskId' in info && info.taskId) {
+      if ("taskId" in info && info.taskId) {
         task.serverTaskId = info.taskId;
       }
 
       switch (info.stage) {
-        case "prepared":
+        case "prepared": {
           task.percentage = Math.max(task.percentage, 5);
+          task.progress = info.message;
           break;
-        case "uploading_audio":
+        }
+        case "uploading_audio": {
           if (info.percentage !== undefined) {
-             // 5% - 20%
-             task.percentage = 5 + (info.percentage * 0.15);
+            task.percentage = 5 + info.percentage * 0.15;
+          }
+          if (info.message) {
+            task.progress = info.message;
+          } else if (info.percentage !== undefined) {
+            task.progress = `音频上传中 ${info.percentage}%`;
           }
           break;
-        case "created":
+        }
+        case "created": {
           task.percentage = Math.max(task.percentage, 25);
+          task.progress = "任务已创建，等待执行...";
           break;
-        case "poll":
-          // poll 25% -> 85%
+        }
+        case "poll": {
           task.percentage = Math.min(85, Math.max(task.percentage, task.percentage + 1));
+          task.progress = `生成中... ${info.status}`;
           break;
-        case "downloading":
+        }
+        case "downloading": {
           task.percentage = Math.max(task.percentage, 90);
+          task.progress = "下载结果中...";
           break;
-        case "saved":
+        }
+        case "saved": {
           task.percentage = 99;
+          task.progress = "已保存到本地";
           break;
-        case "error":
+        }
         case "failed":
-        case "timeout":
+        case "error":
+        case "timeout": {
           task.status = "failed";
-          task.lastError = ('message' in info ? info.message : "") || "Error";
+          const msg = (info as any).message || "Unknown error";
+          task.lastError = msg;
+          task.progress = "失败";
           break;
+        }
       }
     },
 

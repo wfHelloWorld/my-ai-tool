@@ -32,7 +32,7 @@ export interface Wan26I2VPayload {
 
 export type Wan26I2VProgress =
   | { stage: "prepared"; message: string; taskId?: string }
-  | { stage: "uploading_audio"; percentage?: number; taskId?: string }
+  | { stage: "uploading_audio"; percentage?: number; message?: string; taskId?: string }
   | { stage: "created"; taskId: string; status: string }
   | { stage: "poll"; try: number; status: string; taskId?: string }
   | { stage: "downloading"; url: string; outPath: string; taskId?: string }
@@ -120,7 +120,7 @@ export class Wanxiang26I2VProvider {
         const policyData = await this.getUploadPolicy(apiKey, payload.model || "wan2.6-i2v");
         // 上传文件
         audioUrl = await this.uploadFileToOss(policyData, payload.audioPath);
-        onProgress?.({ stage: "uploading_audio", percentage: 100 });
+        onProgress?.({ stage: "uploading_audio", percentage: 100, message: "音频上传成功" });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         throw new Error(`音频上传失败: ${msg}`);

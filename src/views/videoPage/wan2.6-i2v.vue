@@ -98,7 +98,13 @@
                         上传音频
                       </el-button>
                     </div>
-                    <input ref="audioInputRef" type="file" accept="audio/*" class="hidden" @change="handleAudioSelect" />
+                    <input
+                      ref="audioInputRef"
+                      type="file"
+                      accept="audio/wav, audio/x-wav, audio/wave, .wav, audio/mpeg, audio/mp3, .mp3"
+                      class="hidden"
+                      @change="handleAudioSelect"
+                    />
                   </div>
                 </div>
 
@@ -241,6 +247,16 @@ const handleAudioSelect = async (e: Event) => {
   const input = e.target as HTMLInputElement;
   if (!input.files?.length) return;
   const file = input.files[0];
+
+  const lowerName = file.name.toLowerCase();
+  const isWav = lowerName.endsWith(".wav");
+  const isMp3 = lowerName.endsWith(".mp3");
+  if (!isWav && !isMp3) {
+    alert("当前仅支持 wav / mp3 音频文件，请重新选择。");
+    input.value = "";
+    return;
+  }
+
   try {
     const path = await (window as any).electronAPI.getFilePath(file);
     if (path) {

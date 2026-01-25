@@ -35,6 +35,7 @@ export default {
     image: "Image Gen",
     voice: "Voice",
     video: "Video",
+    firstFrameGen: "First Frame Gen",
     download: "Download",
     // Added: message input hint
     imageInputHint: "Click the icon or drag an image into the input box",

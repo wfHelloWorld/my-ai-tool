@@ -52,7 +52,7 @@
             <span>{{ $t('common.video') }}</span>
           </template>
           <el-menu-item index="/video/wan2.6-i2v">
-            <span>wan2.6-i2v</span>
+            <span>{{ $t('common.firstFrameGen') }}</span>
           </el-menu-item>
         </el-sub-menu>
       </el-menu>

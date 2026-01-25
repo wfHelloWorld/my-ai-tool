@@ -20,7 +20,7 @@ const hasWinIcon = fs.existsSync(winIconPath);
 const config: ForgeConfig = {
   // npm run package 使用的配置
   packagerConfig: {
-    name: 'Vchat',
+    name: '我的AI创作工具',
     asar: true, // 将源码打包成 asar 档案
     // Windows 打包图标（.ico）。若缺失则跳过，避免出错。
     ...(hasWinIcon ? { icon: winIconPath } : {}),
@@ -34,16 +34,16 @@ const config: ForgeConfig = {
     // windows 安装程序
     new MakerSquirrel({
       // 应用信息
-      name: 'My-AI-Tools',
+      name: '我的AI创作工具',
       // 开发者需完善：authors、description、iconUrl（远程图标地址，可选）
       // authors: 'Your Name or Company',
-      description: 'A chat application',
+      description: '我的AI创作工具安装程序',
       // 安装程序配置
       // Windows 安装图标（.ico）。若缺失则不设置，避免 make 失败。
       ...(hasWinIcon ? { setupIcon: winIconPath } : {}),
       // iconUrl: 'https://raw.githubusercontent.com/<owner>/<repo>/main/assets/icon.ico', // 远程图标URL（可选）
       // 快捷方式设置
-      setupExe: 'VChat-Setup.exe',  // 安装程序名称
+      setupExe: '我的AI创作工具-Setup.exe',  // 安装程序名称
       // 说明：Windows 自动更新使用 Squirrel.Windows，需要发布 .nupkg、RELEASES、.exe。
     }),
     // mac 安装程序

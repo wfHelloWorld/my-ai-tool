@@ -148,7 +148,7 @@ onMounted(async () => {
 });
 
 const extraParams = reactive({
-	enable_search: false,
+	enable_search: true,
 	enable_thinking: true,
 	search_options: {
 		forced_search: false,

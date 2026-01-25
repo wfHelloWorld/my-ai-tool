@@ -34,6 +34,7 @@ export default {
     image: "生图",
     voice: "语音",
     video: "视频",
+    firstFrameGen: "首图生成",
     download: "下载",
     // 新增：消息输入框提示
     imageInputHint: "点击该图标或者将图片拖入输入框",

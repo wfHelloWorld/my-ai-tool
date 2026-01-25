@@ -1,8 +1,8 @@
 {
   "name": "my-ai-tool",
-  "productName": "my-ai-tool",
+  "productName": "我的AI创作工具",
   "version": "1.0.7",
-  "description": "My Electron application description",
+  "description": "我的AI创作工具：多模态聊天、识图、生图、生视频一站式创作",
   "main": ".vite/build/main.js",
   "scripts": {
     "start": "electron-forge start",

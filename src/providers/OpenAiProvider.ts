@@ -18,6 +18,7 @@ export class OpenAiProvider extends BaseProvider {
 
 		const enableSearch = extraParams?.enable_search ?? false;
 		const enableThinking = extraParams?.enable_thinking ?? false;
+		const thinkingBudget = extraParams?.thinking_budget;
 		const presencePenalty = extraParams?.presence_penalty;
 		const enablePresencePenalty = extraParams?.enable_presence_penalty ?? false;
 		const enableCodeInterpreter = extraParams?.enable_code_interpreter ?? false;
@@ -48,7 +49,12 @@ export class OpenAiProvider extends BaseProvider {
 					},
 				}
 				: {}),
-			...(enableThinking ? { enable_thinking: true } : {}),
+			...(enableThinking
+				? {
+					enable_thinking: true,
+					...(thinkingBudget ? { thinking_budget: thinkingBudget } : {}),
+				}
+				: {}),
 			...(enablePresencePenalty && typeof presencePenalty === "number" ? { presence_penalty: presencePenalty } : {}),
 			...(enableCodeInterpreter && enableThinking && model === "qwen3-max-preview"
 				? { enable_code_interpreter: true }

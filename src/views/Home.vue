@@ -12,88 +12,7 @@
             <div class="h-full flex flex-col">
 				<div class="pt-5 shrink-0"></div>
 				<div class="flex-1 overflow-y-auto px-[5%] pb-4 text-sm text-gray-700 flex flex-col gap-3">
-					<div class="flex items-center justify-between">
-						<div class="flex items-center gap-2">
-							<el-tooltip placement="top" effect="dark">
-								<template #content>
-									<div>是否开启联网搜索，可能增加 Token 消耗。</div>
-								</template>
-								<span class="cursor-help">联网搜索</span>
-							</el-tooltip>
-						</div>
-						<el-switch v-model="extraParams.enable_search" />
-					</div>
-					<div v-if="extraParams.enable_search" class="ml-4 flex flex-col gap-2">
-						<div class="flex items-center justify-between">
-							<el-tooltip placement="top" effect="dark">
-								<template #content>
-									<div>强制搜索，模型每次都会发起联网搜索。</div>
-								</template>
-								<span class="cursor-help">强制搜索</span>
-							</el-tooltip>
-							<el-switch v-model="extraParams.search_options.forced_search" />
-						</div>
-						<div class="flex items-center justify-between">
-							<el-tooltip placement="top" effect="dark">
-								<template #content>
-									<div>搜索策略：turbo 兼顾速度，max 更全面，agent 多轮检索。</div>
-								</template>
-								<span class="cursor-help">搜索策略</span>
-							</el-tooltip>
-							<el-select v-model="extraParams.search_options.search_strategy" class="!w-40" size="small">
-								<el-option label="turbo" value="turbo" />
-								<el-option label="max" value="max" />
-								<el-option label="agent" value="agent" />
-							</el-select>
-						</div>
-						<div class="flex items-center justify-between">
-							<el-tooltip placement="top" effect="dark">
-								<template #content>
-									<div>开启垂域搜索，仅在启用联网搜索时生效。</div>
-								</template>
-								<span class="cursor-help">垂域搜索</span>
-							</el-tooltip>
-							<el-switch v-model="extraParams.search_options.enable_search_extension" />
-						</div>
-					</div>
-					<div class="flex items-center justify-between">
-						<el-tooltip placement="top" effect="dark">
-							<template #content>
-								<div class="max-w-xs">在创意写作或头脑风暴等需要多样性、趣味性或创造力的场景中，建议调高该值；<br>在技术文档或正式文本等强调一致性与术语准确性的场景中，建议调低该值。</div>
-							</template>
-							<span class="cursor-help">内容重复度</span>
-						</el-tooltip>
-						<div class="flex items-center gap-2">
-							<div v-if="extraParams.enable_presence_penalty" class="w-32 mr-2">
-								<el-slider
-									v-model="extraParams.presence_penalty"
-									:min="-2"
-									:max="2"
-									:step="0.1"
-									size="small"
-								/>
-							</div>
-							<el-switch v-model="extraParams.enable_presence_penalty" />
-						</div>
-					</div>
-					<div class="flex items-center justify-between">
-						<el-tooltip placement="top" effect="dark">
-							<template #content>
-								<div>仅 qwen3-max-preview 且开启思考模式时可用。</div>
-							</template>
-							<span class="cursor-help">代码解释器</span>
-						</el-tooltip>
-						<el-switch v-model="extraParams.enable_code_interpreter" />
-					</div>
-					<div class="flex items-center justify-between">
-						<el-tooltip placement="top" effect="dark">
-							<template #content>
-								<div>启用思考模式，对应 enable_thinking。</div>
-							</template>
-							<span class="cursor-help">思考模式</span>
-						</el-tooltip>
-						<el-switch v-model="extraParams.enable_thinking" />
-					</div>
+					<ChatSettingsPanel />
 				</div>
             </div>
           </el-splitter-panel>
@@ -118,6 +37,13 @@ import ConversationList from "../components/ConversationList.vue";
 import { useRouter } from "vue-router";
 import { useConversationStore } from "../stores/useConversationStore";
 import { useProvidersStore } from "../stores/useProviderStore";
+import { useChatSettingsStore } from "../stores/useChatSettingsStore";
+import ChatSettingsPanel from "../components/ChatSettingsPanel.vue";
+
+const chatSettingsStore = useChatSettingsStore();
+const { extraParams } = chatSettingsStore;
+
+
 const providersStore = useProvidersStore();
 const conversationsStore = useConversationStore();
 // conversationsStore.selectedId = -1
@@ -146,43 +72,6 @@ onMounted(async () => {
     rightPaneSize.value = "30%";
 	}
 });
-
-const extraParams = reactive({
-	enable_search: true,
-	enable_thinking: true,
-	search_options: {
-		forced_search: false,
-		search_strategy: "turbo",
-		enable_search_extension: false,
-	},
-	presence_penalty: 1.5,
-	enable_presence_penalty: false,
-	enable_code_interpreter: false,
-});
-
-const EXTRA_KEY = "chatExtraParams";
-
-onMounted(() => {
-	try {
-		const saved = localStorage.getItem(EXTRA_KEY);
-		if (saved) {
-			const parsed = JSON.parse(saved);
-			if (parsed && typeof parsed === "object") {
-				Object.assign(extraParams, parsed);
-			}
-		}
-	} catch (e) {}
-});
-
-watch(
-	() => extraParams,
-	(val) => {
-		try {
-			localStorage.setItem(EXTRA_KEY, JSON.stringify(val));
-		} catch (e) {}
-	},
-	{ deep: true }
-);
 
 const onRightSizeUpdate = async (val: string | number) => {
 	try {

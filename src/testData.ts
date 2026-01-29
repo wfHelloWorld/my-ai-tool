@@ -38,7 +38,7 @@ export const providers: ProviderProps[] = [
   {
     id: 4,
     name: "qwen-vl-plus",
-    title: "千问识图qwen-vl-plus(为了节约流量请发起新对话)",
+    title: "千问识图qwen-vl-plus(不支持思考模式)",
     desc: "识图",
     avatar: "bx:beer",
     createdAt: "2023-12-15T10:30:00Z",
@@ -83,7 +83,7 @@ export const providers: ProviderProps[] = [
   {
     id: 8,
     name: "qwen3-vl-plus",
-    title: "千问识图qwen3-vl-plus(为了节约流量请发起新对话)",
+    title: "千问识图qwen3-vl-plus",
     desc: "识图",
     avatar: "bx:beer",
     createdAt: "2023-12-15T10:30:00Z",

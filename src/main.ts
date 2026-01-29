@@ -53,6 +53,8 @@ const createWindow = async () => {
     // title: "我的AI创作工具", // 不显示标题，保留注释方便回退
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
+      // 开发环境下禁用 webSecurity 以允许加载本地资源
+      webSecurity: !MAIN_WINDOW_VITE_DEV_SERVER_URL,
     },
   });
 

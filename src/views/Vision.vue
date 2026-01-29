@@ -11,8 +11,8 @@
           <el-splitter-panel size="70%">
             <div class="h-full flex flex-col">
               <div class="pt-5 shrink-0"></div>
-              <div class="flex-1 overflow-y-auto px-[5%]">
-                <ConversationList :filter-type="'vision'" />
+              <div class="flex-1 overflow-y-auto px-[5%] pb-4 text-sm text-gray-700 flex flex-col gap-3">
+					<ChatSettingsPanel />
               </div>
             </div>
           </el-splitter-panel>
@@ -38,8 +38,16 @@ import ConversationList from "../components/ConversationList.vue";
 import { useRouter } from "vue-router";
 import { useConversationStore } from "../stores/useConversationStore";
 import { useProvidersStore } from "../stores/useProviderStore";
+import { useChatSettingsStore } from "../stores/useChatSettingsStore";
+import ChatSettingsPanel from "../components/ChatSettingsPanel.vue";
+
 const providersStore = useProvidersStore();
 const conversationsStore = useConversationStore();
+
+const chatSettingsStore = useChatSettingsStore();
+const { extraParams } = chatSettingsStore;
+
+
 // conversationsStore.selectedId = -1
 
 const router = useRouter();

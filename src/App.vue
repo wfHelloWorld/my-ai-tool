@@ -3,8 +3,9 @@
     <!-- 左侧菜单栏 -->
     <aside class="w-[200px] h-full bg-white border-r border-gray-200 flex flex-col drag-region">
       <!-- 顶部功能菜单（可滚动） -->
-      <el-menu :default-active="route.path" class="el-menu-vertical-demo flex-1 overflow-y-auto border-r-0 no-drag"
-        :router="true">
+      <div class="flex-1 overflow-y-auto drag-region">
+        <el-menu :default-active="route.path" class="el-menu-vertical-demo border-r-0 no-drag"
+          :router="true">
         <el-menu-item index="/" class="mt-9">
           <el-icon>
             <Icon icon="fluent:chat-24-regular" />
@@ -59,6 +60,7 @@
           </el-menu-item>
         </el-sub-menu>
       </el-menu>
+      </div>
 
       <!-- 底部系统菜单（固定） -->
       <el-menu :default-active="route.path"

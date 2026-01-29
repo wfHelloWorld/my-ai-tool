@@ -115,8 +115,18 @@ defineProps<{ messages: MessageProps[] }>();
 // 统一构造跨平台安全的图片地址（Windows/macOS 都适用）
 function toSafeFileUrl(localPath: string) {
   if (!localPath) return "";
-  // 在渲染进程侧进行一次编码，避免路径中的空格或中文导致 URL 解析异常
-  return `safe-file://${encodeURIComponent(localPath)}`;
+  // 1. 统一分隔符为 /
+  const normalized = localPath.replace(/\\/g, "/");
+  // 2. 对每一段进行编码，保留路径结构
+  const parts = normalized.split("/").map((p) => encodeURIComponent(p));
+  const pathStr = parts.join("/");
+  // 3. 确保协议后有三个斜杠 (safe-file:///)，这样 host 为空，路径为绝对路径
+  // 如果 pathStr 已经是 /开头（macOS），则拼成 safe-file://${pathStr} 即可（结果是 safe-file:///...）
+  // 如果 pathStr 是 C:/...（Windows），则需要拼成 safe-file:///${pathStr}
+  if (pathStr.startsWith("/")) {
+    return `safe-file://${pathStr}`;
+  }
+  return `safe-file:///${pathStr}`;
 }
 
 function copyMessageContent(content: string) {

@@ -53,6 +53,7 @@ export interface ChatSearchOptions {
 export interface ChatExtraParams {
 	enable_search?: boolean;
 	enable_thinking?: boolean;
+	thinking_budget?: number;
 	search_options?: ChatSearchOptions;
 	presence_penalty?: number;
 	enable_presence_penalty?: boolean;

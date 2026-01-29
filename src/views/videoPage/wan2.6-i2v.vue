@@ -37,12 +37,8 @@
 
                     <!-- 时长 -->
                     <div>
-                      <label class="block text-sm mb-1">时长 (Duration)</label>
-                      <el-select v-model="params.duration" class="w-full">
-                        <el-option label="5 秒" :value="5" />
-                        <el-option label="10 秒" :value="10" />
-                        <el-option label="15 秒" :value="15" />
-                      </el-select>
+                      <label class="block text-sm mb-1">时长 (Duration): {{ params.duration }}s</label>
+                      <el-slider v-model="params.duration" :min="2" :max="15" :step="1" show-stops />
                     </div>
 
                     <!-- 随机种子 -->
@@ -58,6 +54,17 @@
                         <el-option label="单镜头 (Single)" value="single" />
                         <el-option label="多镜头 (Multi)" value="multi" />
                       </el-select>
+                    </div>
+
+                    <!-- 反向提示词 -->
+                    <div class="col-span-2">
+                      <label class="block text-sm mb-1">反向提示词 (Negative Prompt)</label>
+                      <el-input 
+                        v-model="params.negative_prompt" 
+                        type="textarea" 
+                        :rows="2" 
+                        placeholder="不希望出现的元素，例如：low quality, bad anatomy" 
+                      />
                     </div>
 
                     <!-- 复选框 -->
@@ -193,12 +200,22 @@ const providersStore = useProvidersStore();
 const rightPaneSize = ref("70%");
 
 // 参数
-const params = reactive({
+interface VideoParams {
+  resolution: string;
+  duration: number;
+  shot_type: string;
+  watermark: boolean;
+  prompt_extend: boolean;
+  negative_prompt: string;
+}
+
+const params = reactive<VideoParams>({
   resolution: "1080P",
   duration: 5,
   shot_type: "single",
   watermark: false,
   prompt_extend: true,
+  negative_prompt: "",
 });
 const seedInput = ref("");
 
@@ -337,6 +354,7 @@ const createTask = async (prompt: string) => {
     
     const payload = {
       prompt,
+      negative_prompt: params.negative_prompt,
       imagePath: imageItem.value.path,
       audioPath: audioItem.value?.path,
       

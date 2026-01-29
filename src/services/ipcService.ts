@@ -9,6 +9,7 @@ import { Wanxiang25PreviewProvider } from "../providers/imgGen/Wanxiang25Preview
 import { Wanxiang21ImageEditProvider, Wan21ImageEditProgress } from "../providers/imgGen/Wanxiang21ImageEditProvider";
 import { Wanxiang26ImageProvider, Wan26ImageProgress } from "../providers/imgGen/Wanxiang2.6ImageProvider";
 import { Wanxiang26I2VProvider, Wan26I2VProgress } from "../providers/video/wan2.6-i2vProvider";
+import { Wanxiang22Kf2vFlashProvider, Wan22Kf2vFlashProgress } from "../providers/video/wan2.2-kf2v-flashProvider";
 
 /**
  * IPC服务，负责处理主进程和渲染进程之间的通信
@@ -99,21 +100,22 @@ export class IpcService {
 
     // 获取 videos 目录绝对路径
     ipcMain.handle("get-videos-dir-path", async () => {
-      return this.fileService.getVideosDirPath();
+      return this.fileService.getDownloadsVideosDirPath();
     });
 
     // 打开 videos 目录（确保目录存在）
     ipcMain.handle("open-videos-dir", async () => {
-      const userDir = this.fileService.getVideosDirPath();
-      try { await fs.mkdir(userDir, { recursive: true }); } catch (e) { void e; }
-      let result = await shell.openPath(userDir);
+      const dlDir = this.fileService.getDownloadsVideosDirPath();
+      try { await fs.mkdir(dlDir, { recursive: true }); } catch (e) { void e; }
+      let result = await shell.openPath(dlDir);
+      
       if (result !== "") {
-        const dlDir = this.fileService.getDownloadsVideosDirPath();
-        try { await fs.mkdir(dlDir, { recursive: true }); } catch (e) { void e; }
-        result = await shell.openPath(dlDir);
-        return { success: result === "", error: result || null, path: result === "" ? dlDir : userDir };
+        const userDir = this.fileService.getVideosDirPath();
+        try { await fs.mkdir(userDir, { recursive: true }); } catch (e) { void e; }
+        result = await shell.openPath(userDir);
+        return { success: result === "", error: result || null, path: result === "" ? userDir : dlDir };
       }
-      return { success: true, error: null, path: userDir };
+      return { success: true, error: null, path: dlDir };
     });
 
     // 读取视频文件内容（用于前端 Blob 预览）
@@ -123,6 +125,37 @@ export class IpcService {
         return buffer;
       } catch (err: unknown) {
         console.error("Read video file error:", err);
+        throw err;
+      }
+    });
+
+    ipcMain.handle("wan2.2-kf2v-flash", async (_event, payload) => {
+      try {
+        const cfg = await configManager.getConfig();
+        const apiKey = payload?.apiKey || cfg.DASHSCOPE_API_KEY;
+        const provider = new Wanxiang22Kf2vFlashProvider({ apiKey });
+        console.log("[wan2.2-kf2v-flash] payload:", {
+          ...payload,
+          apiKey: apiKey ? `${String(apiKey).slice(0, 4)}***${String(apiKey).slice(-4)}` : "<missing>",
+        });
+        const clientId = payload?.clientId;
+        const name = payload?.name;
+        const result = await provider.generate(payload, (info: Wan22Kf2vFlashProgress) => {
+          try {
+            _event.sender.send("wan2.2-kf2v-flash-progress", { ...info, clientId, name });
+          } catch (e) {
+            console.warn("[wan2.2-kf2v-flash] progress send failed:", String(e));
+          }
+        });
+        console.log("[wan2.2-kf2v-flash] result paths:", result);
+        return result;
+      } catch (err) {
+        console.error("[wan2.2-kf2v-flash] error:", err);
+        try {
+          _event.sender.send("wan2.2-kf2v-flash-progress", { stage: "error", message: err instanceof Error ? err.message : String(err), clientId: payload?.clientId, name: payload?.name });
+        } catch (e) {
+          console.warn("[wan2.2-kf2v-flash] progress send failed in error:", String(e));
+        }
         throw err;
       }
     });

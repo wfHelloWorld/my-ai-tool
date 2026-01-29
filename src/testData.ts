@@ -127,4 +127,16 @@ export const providers: ProviderProps[] = [
     type: "video",
     url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis"
   },
+  {
+    id: 12,
+    name: "wan2.2-kf2v-flash",
+    title: "万相2.2极速版（无声视频）",
+    desc: "基于收尾帧生成.较2.1模型速度提升50%，稳定性与成功率全面提升",
+    avatar: "bx:basketball",
+    createdAt: "2025-08-27T08:00:00Z",
+    updatedAt: "2025-08-27T08:00:00Z",
+    label: "阿里云百炼",
+    type: "video",
+    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2video/video-synthesis"
+  },
 ];

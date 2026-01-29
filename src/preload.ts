@@ -6,6 +6,7 @@ import type { Wan25PreviewPayload, Wan25PreviewProgress } from "./providers/imgG
 import type { Wan21ImageEditPayload, Wan21ImageEditProgress } from "./providers/imgGen/Wanxiang21ImageEditProvider";
 import type { Wan26ImagePayload, Wan26ImageProgress } from "./providers/imgGen/Wanxiang2.6ImageProvider";
 import type { Wan26I2VPayload, Wan26I2VProgress } from "./providers/video/wan2.6-i2vProvider";
+import type { Wan22Kf2vFlashPayload, Wan22Kf2vFlashProgress } from "./providers/video/wan2.2-kf2v-flashProvider";
 
 // 使用TS,这里的接口需把类型添加到window上(interface.d.ts)
 contextBridge.exposeInMainWorld("electronAPI", {
@@ -132,6 +133,16 @@ contextBridge.exposeInMainWorld("electronAPI", {
     const handler = (_e: Electron.IpcRendererEvent, info: Wan26I2VProgress) => callback(info);
     ipcRenderer.on("wan26-i2v-progress", handler);
     return () => ipcRenderer.off("wan26-i2v-progress", handler);
+  },
+
+  // 生视频：万相2.2-kf2v-flash
+  startWan22Kf2vFlash: (payload: Wan22Kf2vFlashPayload): Promise<string[]> =>
+    ipcRenderer.invoke("wan2.2-kf2v-flash", payload),
+  // 生视频进度订阅（万相2.2-kf2v-flash）
+  onWan22Kf2vFlashProgress: (callback: (info: Wan22Kf2vFlashProgress) => void) => {
+    const handler = (_e: Electron.IpcRendererEvent, info: Wan22Kf2vFlashProgress) => callback(info);
+    ipcRenderer.on("wan2.2-kf2v-flash-progress", handler);
+    return () => ipcRenderer.off("wan2.2-kf2v-flash-progress", handler);
   },
 
 

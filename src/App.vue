@@ -54,6 +54,9 @@
           <el-menu-item index="/video/wan2.6-i2v">
             <span>{{ $t('common.firstFrameGen') }}</span>
           </el-menu-item>
+          <el-menu-item index="/video/wan2.2-kf2v-flash">
+            <span>{{ $t('common.firstAndLastFrameGen') }}</span>
+          </el-menu-item>
         </el-sub-menu>
       </el-menu>
 

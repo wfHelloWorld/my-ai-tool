@@ -1,5 +1,5 @@
 # Version: 1.0.8
-- wan2.6-i2v视频模型集成
+- wan2.6-i2v视频模型集成(首图)
 
 # Version: 1.0.7 
 - chat 的控制参数

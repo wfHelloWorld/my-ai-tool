@@ -80,7 +80,7 @@ export class FileService {
    * @returns 新文件路径
    */
   async saveVideoFromUrl(url: string, filename: string): Promise<string> {
-    const videosDir = this.getVideosDirPath();
+    const videosDir = this.getDownloadsVideosDirPath();
     await fs.mkdir(videosDir, { recursive: true });
 
     const safeName = filename || `video-${Date.now()}.mp4`;

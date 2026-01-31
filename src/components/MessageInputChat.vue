@@ -40,7 +40,7 @@
           <!-- 左侧：导入图片（simpleMode 下隐藏） -->
           <div v-if="!props.simpleMode">
             <input type="file" accept="image/*" class="hidden" ref="fileInput" @change="handleImageUpload" />
-            <el-button type="text" @click="triggerFileInput" :disabled="props.disabled" class="px-2 py-2" circle>
+            <el-button type="primary" link @click="triggerFileInput" :disabled="props.disabled" class="px-2 py-2" circle>
               <Icon icon="radix-icons:image" width="20" height="20" />
             </el-button>
           </div>

@@ -1,6 +1,7 @@
 import fs from "fs/promises";
 import path from "node:path";
 import { lookup } from "mime-types";
+import { nativeImage } from "electron";
 import { FileService } from "../../services/fileService";
 
 /**
@@ -191,9 +192,46 @@ export class Wanxiang26I2VProvider {
   }
 
   private async fileToDataUrl(filePath: string): Promise<string> {
-    const buffer = await fs.readFile(filePath);
-    const mime = lookup(filePath) || "application/octet-stream";
-    return `data:${mime};base64,${buffer.toString("base64")}`;
+    const stat = await fs.stat(filePath);
+    // Limit is ~19MB base64, so ~14MB binary.
+    // Set a safe limit of 10MB to avoid API limits.
+    const MAX_SIZE = 10 * 1024 * 1024;
+
+    if (stat.size <= MAX_SIZE) {
+      const buffer = await fs.readFile(filePath);
+      const mime = lookup(filePath) || "application/octet-stream";
+      return `data:${mime};base64,${buffer.toString("base64")}`;
+    }
+
+    // Too large, resize using nativeImage
+    console.log(`[Wan26I2VProvider] Image too large (${stat.size} bytes), resizing...`);
+    const image = nativeImage.createFromPath(filePath);
+    if (image.isEmpty()) {
+      throw new Error("Failed to load image for resizing");
+    }
+
+    const size = image.getSize();
+    const maxDim = 2048; // Max dimension
+    let newWidth = size.width;
+    let newHeight = size.height;
+
+    if (newWidth > maxDim || newHeight > maxDim) {
+      if (newWidth > newHeight) {
+        newHeight = Math.round(newHeight * (maxDim / newWidth));
+        newWidth = maxDim;
+      } else {
+        newWidth = Math.round(newWidth * (maxDim / newHeight));
+        newHeight = maxDim;
+      }
+    }
+
+    // Resize and convert to JPEG
+    const resized = image.resize({ width: newWidth, height: newHeight, quality: "better" });
+    const jpegBuffer = resized.toJPEG(85);
+
+    console.log(`[Wan26I2VProvider] Resized image to ${newWidth}x${newHeight}, size: ${jpegBuffer.length} bytes`);
+
+    return `data:image/jpeg;base64,${jpegBuffer.toString("base64")}`;
   }
 
   private async getUploadPolicy(apiKey: string, model: string): Promise<OssPolicyData> {

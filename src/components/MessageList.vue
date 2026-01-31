@@ -39,7 +39,8 @@
             <span v-if="message.type === 'answer'" class="ml-4">
               <el-button
                 size="small"
-                type="default"
+                type="primary"
+                link
                 @click="copyMessageContent(message.content)"
               >
                 <Icon icon="radix-icons:copy" width="15" height="15" />
@@ -51,18 +52,23 @@
             v-if="message.type === 'question'"
           >
             <!-- 图片预览 -->
-            <img
-              v-if="message.firstImagePath"
-              :src="toSafeFileUrl(message.firstImagePath)"
-              alt="messageImage"
-              class="h-50 object-cover rounded block"
-            />
-            <img
-              v-if="message.lastImagePath"
-              :src="toSafeFileUrl(message.lastImagePath)"
-              alt="messageImage"
-              class="h-50 object-cover rounded block"
-            />
+            <div v-if="message.firstImagePath" class="mb-2">
+              <img
+                :src="toSafeFileUrl(message.firstImagePath)"
+                alt="messageImage"
+                class="h-50 object-cover rounded block"
+                @error="(e) => handleImageError(e, message.firstImagePath)"
+                @load="handleImageLoad(message.firstImagePath)"
+              />
+            </div>
+            <div v-if="message.lastImagePath" class="mb-2">
+              <img
+                :src="toSafeFileUrl(message.lastImagePath)"
+                alt="messageImage"
+                class="h-50 object-cover rounded block"
+                @error="(e) => handleImageError(e, message.lastImagePath)"
+              />
+            </div>
             <div class="prose prose-slate prose-headings:my-2 prose-pre:p-0">
               <MarkdownViewer :source="message.content" />
             </div>
@@ -115,18 +121,9 @@ defineProps<{ messages: MessageProps[] }>();
 // 统一构造跨平台安全的图片地址（Windows/macOS 都适用）
 function toSafeFileUrl(localPath: string) {
   if (!localPath) return "";
-  // 1. 统一分隔符为 /
-  const normalized = localPath.replace(/\\/g, "/");
-  // 2. 对每一段进行编码，保留路径结构
-  const parts = normalized.split("/").map((p) => encodeURIComponent(p));
-  const pathStr = parts.join("/");
-  // 3. 确保协议后有三个斜杠 (safe-file:///)，这样 host 为空，路径为绝对路径
-  // 如果 pathStr 已经是 /开头（macOS），则拼成 safe-file://${pathStr} 即可（结果是 safe-file:///...）
-  // 如果 pathStr 是 C:/...（Windows），则需要拼成 safe-file:///${pathStr}
-  if (pathStr.startsWith("/")) {
-    return `safe-file://${pathStr}`;
-  }
-  return `safe-file:///${pathStr}`;
+  // 使用 query 参数传递路径，避免 URL 解析问题
+  // 这种方式将路径作为参数传递，而不是 URL 的一部分，彻底避免了路径分隔符和特殊字符的问题
+  return `safe-file://render?path=${encodeURIComponent(localPath)}`;
 }
 
 function copyMessageContent(content: string) {
@@ -140,6 +137,14 @@ function copyMessageContent(content: string) {
       ElMessage.error("复制失败,error: ", err);
     });
 }
+
+const handleImageError = (e: Event, path?: string) => {
+  console.error(`[MessageList] Image load failed for path: ${path}`);
+};
+
+const handleImageLoad = (path?: string) => {
+  console.log(`[MessageList] Image loaded successfully: ${path}`);
+};
 
 onMounted(() => {
   // 移除全局监听，避免冲突或重复监听

@@ -58,6 +58,9 @@
           <el-menu-item index="/video/wan2.2-kf2v-flash">
             <span>{{ $t('common.firstAndLastFrameGen') }}</span>
           </el-menu-item>
+          <el-menu-item index="/video/video-effects-first">
+            <span>{{ $t('common.videoEffectsFirst') }}</span>
+          </el-menu-item>
         </el-sub-menu>
       </el-menu>
       </div>

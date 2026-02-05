@@ -3,11 +3,13 @@ import { lookup } from "mime-types";
 import { FileService } from "../../services/fileService";
 
 /**
+ * 基于首尾图生成
  * 适配 wan2.2-kf2v-flash 的 Provider
  */
 export interface Wan22Kf2vFlashPayload {
   prompt?: string;
   negative_prompt?: string;
+  template?: string; // 视频特效模板
   firstFramePath: string; // 必填，本地绝对路径
   lastFramePath?: string; // 选填，本地绝对路径
   
@@ -43,6 +45,7 @@ interface VideoInputPayload {
   last_frame_url?: string;
   prompt?: string;
   negative_prompt?: string;
+  template?: string;
 }
 
 interface VideoParameters {
@@ -107,6 +110,7 @@ export class Wanxiang22Kf2vFlashProvider {
     if (lastFrameBase64) input.last_frame_url = lastFrameBase64;
     if (payload.prompt) input.prompt = payload.prompt;
     if (payload.negative_prompt) input.negative_prompt = payload.negative_prompt;
+    if (payload.template) input.template = payload.template;
 
     const parameters: VideoParameters = {};
     if (payload.resolution) parameters.resolution = payload.resolution;
@@ -175,7 +179,7 @@ export class Wanxiang22Kf2vFlashProvider {
     onProgress?: (info: Wan22Kf2vFlashProgress) => void
   ): Promise<string> {
     let retry = 0;
-    const maxRetry = 200; // ~10-20 min
+    const maxRetry = 1000000; // Removed timeout limit
     
     while (retry < maxRetry) {
       retry++;

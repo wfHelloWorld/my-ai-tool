@@ -160,7 +160,7 @@ export class Wanxiang26ImageProvider {
     let status: string = created?.output?.task_status || "PENDING";
     onProgress?.({ stage: "created", taskId, status });
     let tries = 0;
-    const maxTries = 120; // 最长等 20 分钟
+    const maxTries = 1000000; // Removed timeout limit
     const savedPaths: string[] = [];
 
     while (status !== "SUCCEEDED" && status !== "FAILED" && tries < maxTries) {

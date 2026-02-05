@@ -1,3 +1,5 @@
+<!-- 基于首尾 -->
+
 <template>
   <div class="h-full" ref="outerContainer">
     <el-splitter style="height: 100%">

@@ -151,6 +151,7 @@ import { useI18nStore } from "../stores/useI18nStore";
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
 import MarkdownViewer from "../components/MarkdownViewer.vue";
+import logMdContent from "../common/md/log.md?raw";
 
 const i18nStore = useI18nStore();
 const { t } = useI18n();
@@ -174,7 +175,7 @@ const currentConfig = reactive<AppConfig>({
 });
 
 // 版本日志内容（运行时加载）
-const logMd = ref("");
+const logMd = ref(logMdContent);
 
 // 窗口缩放比例（通过 Electron 控制），默认 1
 const zoom = ref(1);
@@ -244,15 +245,6 @@ onMounted(async () => {
     });
     // 初始化缓存信息
     await refreshCacheInfo();
-
-    // 加载版本日志 Markdown 内容
-    try {
-      const res = await fetch("/src/common/md/log.md?raw");
-      logMd.value = await res.text();
-    } catch (err) {
-      console.error("加载版本日志失败:", err);
-      logMd.value = "# 日志加载失败";
-    }
   } catch (error) {
     console.error("获取配置失败:", error);
   }

@@ -5,11 +5,13 @@ import { nativeImage } from "electron";
 import { FileService } from "../../services/fileService";
 
 /**
+ * 基于首图生成
  * 适配 wan2.6-i2v 的 Provider
  */
 export interface Wan26I2VPayload {
   prompt?: string;
   negative_prompt?: string;
+  template?: string; // 视频特效模板
   imagePath: string; // 必填，本地绝对路径
   audioPath?: string; // 选填，本地绝对路径
   
@@ -46,6 +48,7 @@ interface VideoInputPayload {
   img_url: string;
   prompt?: string;
   negative_prompt?: string;
+  template?: string;
   audio_url?: string;
 }
 
@@ -135,6 +138,7 @@ export class Wanxiang26I2VProvider {
     };
     if (payload.prompt) input.prompt = payload.prompt;
     if (payload.negative_prompt) input.negative_prompt = payload.negative_prompt;
+    if (payload.template) input.template = payload.template;
     if (audioUrl) input.audio_url = audioUrl;
 
     const parameters: VideoParameters = {};
@@ -192,6 +196,10 @@ export class Wanxiang26I2VProvider {
   }
 
   private async fileToDataUrl(filePath: string): Promise<string> {
+    if (filePath.startsWith("data:")) {
+      return filePath;
+    }
+
     const stat = await fs.stat(filePath);
     // Limit is ~19MB base64, so ~14MB binary.
     // Set a safe limit of 10MB to avoid API limits.
@@ -290,7 +298,8 @@ export class Wanxiang26I2VProvider {
     onProgress?: (info: Wan26I2VProgress) => void
   ): Promise<string> {
     let retry = 0;
-    const maxRetry = 200; // ~10-20 min
+    // Effectively infinite retry (user requested to remove timeout)
+    const maxRetry = 1000000; 
     
     while (retry < maxRetry) {
       retry++;

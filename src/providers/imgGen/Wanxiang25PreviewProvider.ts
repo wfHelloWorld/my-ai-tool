@@ -107,7 +107,7 @@ export class Wanxiang25PreviewProvider {
     let status: string = created?.output?.task_status || "PENDING";
     onProgress?.({ stage: "created", taskId, status });
     let tries = 0;
-    const maxTries = 60; // 最长等 10 分钟（每次 10s）
+    const maxTries = 1000000; // Removed timeout limit
     const savedPaths: string[] = [];
 
     while (status !== "SUCCEEDED" && status !== "FAILED" && tries < maxTries) {

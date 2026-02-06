@@ -32,6 +32,7 @@
                     <div>
                       <label class="block text-sm mb-1">分辨率 (Size)</label>
                       <el-select v-model="params.size" class="w-full">
+                        <el-option label="默认 (不指定)" value="" />
                         <el-option label="1280*1280 (1:1)" value="1280*1280" />
                         <el-option label="1024*1024 (1:1)" value="1024*1024" />
                         <el-option label="800*1200 (2:3)" value="800*1200" />
@@ -153,7 +154,7 @@ watch(enable_interleave, () => {
 });
 const params = reactive({
   n: 1,
-  size: "1280*1280",
+  size: "", // Default empty string for "no size specified"
   watermark: false,
   prompt_extend: true,
 });
@@ -241,7 +242,7 @@ const createTask = async (prompt: string) => {
       prompt,
       imagePaths: imageList.value.map(i => i.path),
       n: params.n,
-      size: params.size,
+      ...(params.size ? { size: params.size } : {}),
       seed: seedInput.value ? Number(seedInput.value) : undefined,
       watermark: params.watermark,
       prompt_extend: params.prompt_extend,

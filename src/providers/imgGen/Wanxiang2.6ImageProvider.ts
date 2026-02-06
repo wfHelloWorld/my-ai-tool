@@ -105,7 +105,7 @@ export class Wanxiang26ImageProvider {
       parameters: {
         seed?: number;
         watermark: boolean;
-        size: string;
+        size?: string;
         enable_interleave: boolean;
         prompt_extend: boolean;
         n?: number;
@@ -124,9 +124,9 @@ export class Wanxiang26ImageProvider {
       parameters: {
         seed: payload.seed,
         watermark: payload.watermark ?? false,
-        size: payload.size || "1280*1280",
+        ...(payload.size ? { size: payload.size } : {}),
         enable_interleave: enable_interleave,
-        prompt_extend: payload.prompt_extend ?? true,
+        prompt_extend: payload.prompt_extend ?? false,
       },
     };
 

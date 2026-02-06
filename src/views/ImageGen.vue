@@ -144,6 +144,7 @@ const params = reactive({
   size: "",
 });
 const sizeOptions: Array<{ value: string; label: string }> = [
+  { value: "", label: "默认 (不指定)" },
   { value: "1280*1280", label: "1280*1280：1:1" },
   { value: "1024*1024", label: "1024*1024：1:1" },
   { value: "800*1200", label: "800*1200：2:3" },

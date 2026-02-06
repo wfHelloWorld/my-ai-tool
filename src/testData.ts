@@ -91,18 +91,7 @@ export const providers: ProviderProps[] = [
     label: "阿里云百炼",
     type: "vision",
   },
-  {
-    id: 9,
-    name: "wanx2.1-imageedit",
-    title: "通义万相-通用图像编辑2.1",
-    desc: "通义万相-通用图像编辑2.1",
-    avatar: "bx:basketball",
-    createdAt: "2025-08-27T08:00:00Z",
-    updatedAt: "2025-08-27T08:00:00Z",
-    label: "阿里云百炼",
-    type: "imageGen",
-    url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis"
-  },
+
   {
     id: 10,
     name: "wan2.6-image",

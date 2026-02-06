@@ -6,7 +6,7 @@ import { configManager } from '../config';
 import { CreateChatProps } from '../types';
 import { updateMenu, createContextMenu } from '../menu';
 import { Wanxiang25PreviewProvider } from "../providers/imgGen/Wanxiang25PreviewProvider";
-import { Wanxiang21ImageEditProvider, Wan21ImageEditProgress } from "../providers/imgGen/Wanxiang21ImageEditProvider";
+
 import { Wanxiang26ImageProvider, Wan26ImageProgress } from "../providers/imgGen/Wanxiang2.6ImageProvider";
 import { Wanxiang26I2VProvider, Wan26I2VProgress } from "../providers/video/wan2.6-i2vProvider";
 import { Wanxiang22Kf2vFlashProvider, Wan22Kf2vFlashProgress } from "../providers/video/wan2.2-kf2v-flashProvider";

@@ -30,9 +30,7 @@
           <el-menu-item index="/image/wan2.5-preview">
             <span>wan2.5-i2i-preview</span>
           </el-menu-item>
-          <el-menu-item index="/image/wanx2.1-edit">
-            <span>wanx2.1-imageedit</span>
-          </el-menu-item>
+
           <el-menu-item index="/image/wan2.6-image">
             <span>wan2.6-image</span>
           </el-menu-item>

@@ -3,7 +3,7 @@
 import { contextBridge, ipcRenderer, webUtils } from "electron";
 import { AppConfig, CreateChatProps, OnUpdatedCallback } from "./types";
 import type { Wan25PreviewPayload, Wan25PreviewProgress } from "./providers/imgGen/Wanxiang25PreviewProvider";
-import type { Wan21ImageEditPayload, Wan21ImageEditProgress } from "./providers/imgGen/Wanxiang21ImageEditProvider";
+
 import type { Wan26ImagePayload, Wan26ImageProgress } from "./providers/imgGen/Wanxiang2.6ImageProvider";
 import type { Wan26I2VPayload, Wan26I2VProgress } from "./providers/video/wan2.6-i2vProvider";
 import type { Wan22Kf2vFlashPayload, Wan22Kf2vFlashProgress } from "./providers/video/wan2.2-kf2v-flashProvider";
@@ -105,15 +105,7 @@ contextBridge.exposeInMainWorld("electronAPI", {
     return () => ipcRenderer.off("wan25-preview-progress", handler);
   },
 
-  // 生图：万相2.1图像编辑
-  startWan21ImageEdit: (payload: Wan21ImageEditPayload): Promise<string[]> =>
-    ipcRenderer.invoke("wan21-imageedit", payload),
-  // 生图进度订阅（万相2.1图像编辑）
-  onWan21ImageEditProgress: (callback: (info: Wan21ImageEditProgress) => void) => {
-    const handler = (_e: Electron.IpcRendererEvent, info: Wan21ImageEditProgress) => callback(info);
-    ipcRenderer.on("wan21-imageedit-progress", handler);
-    return () => ipcRenderer.off("wan21-imageedit-progress", handler);
-  },
+
 
   // 生图：万相2.6-image
   startWan26Image: (payload: Wan26ImagePayload): Promise<string[]> =>

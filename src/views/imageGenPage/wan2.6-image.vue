@@ -206,7 +206,11 @@ const removeImage = (idx: number) => {
 const genResultPaths = ref<string[]>([]);
 const isGenerating = ref(false);
 
-const toSafeFileUrl = (localPath: string) => `safe-file:///${encodeURIComponent(localPath)}`;
+const toSafeFileUrl = (localPath: string) => {
+  if (!localPath) return "";
+  // 使用 query 参数传递路径，并添加 dummy path 确保 URL 格式标准
+  return `safe-file:///image?path=${encodeURIComponent(localPath)}`;
+};
 const openImagesDir = () => (window as any).electronAPI.openDownloadsDir();
 const openImage = (path: string) => (window as any).electronAPI.openPath(path);
 
@@ -250,7 +254,10 @@ const createTask = async (prompt: string) => {
     };
     
     const res = await (window as any).electronAPI.startWan26Image(payload);
-    genResultPaths.value = res || [];
+    // 追加结果而不是覆盖
+    if (res && res.length > 0) {
+      genResultPaths.value = [...genResultPaths.value, ...res];
+    }
     wanStore.finish(clientId, true);
   } catch (err: any) {
     console.error(err);

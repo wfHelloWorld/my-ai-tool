@@ -21,52 +21,56 @@ export class ProtocolService {
    */
   private registerSafeFileProtocol() {
     protocol.handle("safe-file", async (request) => {
-      console.log(`[SafeFile] Request URL: ${request.url}`);
-
+      // console.log(`[SafeFile] Request URL: ${request.url}`);
       let normalizedPath = "";
+
       try {
-        const urlObj = new URL(request.url);
-        if (urlObj.searchParams.has("path")) {
-          // 优先使用 query 参数传递的路径，这种方式最稳健，避免了 URL 路径解析的各种坑
-          normalizedPath = urlObj.searchParams.get("path") || "";
-          console.log(`[SafeFile] Path from query param: ${normalizedPath}`);
-        } else {
-          // 兼容旧的 URL 格式: safe-file:///C:/...
-          // 提取路径部分
-          // request.url 格式通常为: safe-file:///C:/Users/...
-          // slice("safe-file://".length) -> /C:/Users/...
-          let rawPath = request.url.slice("safe-file://".length);
+        // 方法1：尝试手动提取 path 参数（最稳健，不依赖 URL 类解析 custom protocol 的怪癖）
+        // 匹配 ?path= 或 &path= 后面直到行尾或下一个 &
+        const match = request.url.match(/[?&]path=([^&]+)/);
+        if (match && match[1]) {
+          const encodedPath = match[1];
+          normalizedPath = decodeURIComponent(encodedPath);
+          // console.log(`[SafeFile] Path extracted via regex: ${normalizedPath}`);
+        } 
+        // 方法2：如果没找到 path 参数，尝试作为旧版格式解析 (safe-file:///C:/...)
+        else {
+          // 移除协议头
+          let rawPath = request.url.replace(/^safe-file:\/\//, '');
           
-          // 解码 (将 %20 等转回原始字符)
+          // 如果以 / 开头（例如 safe-file:///C:/... 变成 /C:/...），先去掉
+          // 注意：保留 query 参数前的部分
+          rawPath = rawPath.split('?')[0]; 
+          
+          // 解码
           rawPath = decodeURIComponent(rawPath);
 
-          // Windows下，rawPath可能是 /C:\Users\... 这种形式，path.normalize会保留开头的/导致解析错误
-          // 如果是 Windows 且路径以 / 开头后接盘符，去掉开头的 /
+          // Windows 特殊处理：移除开头的 / (如果是 /C:/... 格式)
           if (process.platform === 'win32' && /^\/[a-zA-Z]:/.test(rawPath)) {
             rawPath = rawPath.slice(1);
           }
-          console.log(`[SafeFile] Decoded Raw Path (Legacy): ${rawPath}`);
-          normalizedPath = path.normalize(rawPath);
+          normalizedPath = rawPath;
+          // console.log(`[SafeFile] Path extracted via legacy logic: ${normalizedPath}`);
         }
+
+        // 统一规范化路径
+        if (normalizedPath) {
+          normalizedPath = path.normalize(normalizedPath);
+        }
+
       } catch (e) {
-        console.error(`[SafeFile] URL parse error:`, e);
-        // Fallback for malformed URLs
-        let rawPath = request.url.slice("safe-file://".length);
-        rawPath = decodeURIComponent(rawPath);
-        if (process.platform === 'win32' && /^\/[a-zA-Z]:/.test(rawPath)) {
-            rawPath = rawPath.slice(1);
-        }
-        normalizedPath = path.normalize(rawPath);
+        console.error(`[SafeFile] Critical parse error:`, e);
+        return new Response("Invalid URL", { status: 400 });
       }
 
-      console.log(`[SafeFile] Final Normalized Path: ${normalizedPath}`);
+      if (!normalizedPath) {
+        return new Response("Path not found in URL", { status: 400 });
+      }
 
-      // 读取文件并返回响应，避免在不同平台上对 file:// 的支持差异
+      // 读取文件
       try {
         const data = await fs.readFile(normalizedPath);
         const mimeType = lookup(normalizedPath) || 'application/octet-stream';
-        console.log(`[SafeFile] Serving file via fs.readFile: ${normalizedPath} (${mimeType})`);
-        
         return new Response(data, {
           headers: {
             'Content-Type': String(mimeType),
@@ -75,9 +79,7 @@ export class ProtocolService {
         });
       } catch (err: any) {
         console.error(`[SafeFile] Error loading ${normalizedPath}:`, err);
-        const message = err?.message || 'File not found';
-        // 兜底：返回 404 与简短说明，便于调试
-        return new Response(message, { status: 404 });
+        return new Response("File not found", { status: 404 });
       }
     });
   }

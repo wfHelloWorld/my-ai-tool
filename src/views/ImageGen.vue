@@ -164,8 +164,8 @@ const fileInputRef = ref<HTMLInputElement | null>(null);
 
 function toSafeFileUrl(localPath: string) {
   if (!localPath) return "";
-  // 使用三斜杠 /// 确保路径被解析为 pathname 而不是 host，从而保留大小写（这对 macOS/Linux 至关重要）
-  return `safe-file:///${encodeURIComponent(localPath)}`;
+  // 使用 query 参数传递路径，并添加 dummy path 确保 URL 格式标准
+  return `safe-file:///image?path=${encodeURIComponent(localPath)}`;
 }
 
 const openImagesDir = async () => {
@@ -374,7 +374,10 @@ const createConversation = async (question: string) => {
 
     const resultPaths = await window.electronAPI.startWan25Preview({ ...payload, clientId, name: taskName });
     console.log("[ImageGen] result paths:", resultPaths);
-    genResultPaths.value = resultPaths || [];
+    // 追加结果而不是覆盖
+    if (resultPaths && resultPaths.length > 0) {
+      genResultPaths.value = [...genResultPaths.value, ...resultPaths];
+    }
     isGenerating.value = false;
     try { if (clientId) wanPreviewStore.finish(clientId); } catch (_) {}
     if ((resultPaths || []).length > 0) {

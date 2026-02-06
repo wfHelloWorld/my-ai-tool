@@ -65,7 +65,9 @@ export class Wanxiang26ImageProvider {
 
     const imagePaths = payload.imagePaths || [];
     // 使用图像编辑模式 (enable_interleave=false)，支持文生图和图生图
-    const enable_interleave = false;
+    // 注意：当 enable_interleave=false 时，input.messages 必须包含至少一张图片
+    // 因此如果没有图片，应强制设为 true (纯文生图)；如果有图片，则设为 false (图生图/编辑)
+    const enable_interleave = imagePaths.length === 0;
     
     if (imagePaths.length > 4) {
       throw new Error("最多支持 4 张参考图");
@@ -175,19 +177,33 @@ export class Wanxiang26ImageProvider {
 
       if (status === "SUCCEEDED") {
         const choices = r?.output?.choices || [];
+        console.log(`[Wanxiang26ImageProvider] SUCCEEDED. Choices count: ${choices.length}`);
+        
         // 根据文档: choices[].message.content[].image
         const imgUrls: string[] = [];
         
         if (Array.isArray(choices)) {
           for (const choice of choices) {
             const msgs = choice.message?.content || [];
-            for (const item of msgs) {
-              if (item.image) imgUrls.push(item.image);
+            if (Array.isArray(msgs)) {
+              for (const item of msgs) {
+                // 兼容可能的字段名并去除空白
+                const url = item.image || item.img || item.url;
+                if (url && typeof url === "string") {
+                  imgUrls.push(url.trim());
+                } else if (item.type === "image") {
+                   console.warn("[Wanxiang26ImageProvider] Image item found but no url:", item);
+                }
+              }
             }
           }
         }
         
-        console.log(`[Wanxiang26ImageProvider] Got ${imgUrls.length} images.`);
+        if (imgUrls.length === 0) {
+           console.warn("[Wanxiang26ImageProvider] No images found in SUCCEEDED response:", JSON.stringify(r?.output));
+        } else {
+           console.log(`[Wanxiang26ImageProvider] Found ${imgUrls.length} images.`);
+        }
         
         // 下载图片
         let idx = 0;

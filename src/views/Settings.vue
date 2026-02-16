@@ -133,7 +133,7 @@
         <Icon icon="mdi:book-information-outline" width="15" height="15" class="pr-0.5" />
         <span class="select-none">{{ $t("settings.keyDoc") }}</span>
       </template>
-      <div class="demo-collapse log-pane">
+      <div class="demo-collapse log-pane provider-pane">
         <el-scrollbar style="height: 100%">
           <MarkdownViewer :source="apiKeyGuideMd" />
         </el-scrollbar>
@@ -145,7 +145,7 @@
         <Icon icon="mdi:database-cog-outline" width="15" height="15" class="pr-0.5" />
         <span class="select-none">{{ $t("settings.providerManageTab") }}</span>
       </template>
-      <div class="demo-collapse log-pane">
+      <div class="demo-collapse log-pane provider-pane">
         <div class="flex items-center gap-2 mb-3">
           <el-button size="small" type="primary" @click="reloadProviders" :loading="loadingProviders">
             {{ $t("settings.providerRefresh") }}
@@ -192,15 +192,31 @@
           :data="editingProviders"
           size="small"
           border
-          style="width: 100%"
+          :style="{ width: providerTableWidth }"
         >
-          <el-table-column prop="id" :label="$t('settings.providerId')" width="60" align="center" />
-          <el-table-column prop="name" :label="$t('settings.providerName')" width="160">
+          <el-table-column
+            fixed
+            prop="id"
+            :label="$t('settings.providerId')"
+            align="center"
+            width="60"
+          />
+          <el-table-column
+            fixed
+            prop="name"
+            :label="$t('settings.providerName')"
+            width="160"
+            show-overflow-tooltip
+          >
             <template #default="{ row }">
               <el-input v-model="row.name" size="small" />
             </template>
           </el-table-column>
-          <el-table-column prop="avatar" :label="$t('settings.providerAvatar')" width="220">
+          <el-table-column
+            prop="avatar"
+            :label="$t('settings.providerAvatar')"
+            width="220"
+          >
             <template #default="{ row }">
               <div class="flex items-center gap-2">
                 <Icon
@@ -233,17 +249,31 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="title" :label="$t('settings.providerTitle')" width="220">
+          <el-table-column
+            prop="title"
+            :label="$t('settings.providerTitle')"
+            width="220"
+            show-overflow-tooltip
+          >
             <template #default="{ row }">
               <el-input v-model="row.title" size="small" />
             </template>
           </el-table-column>
-          <el-table-column prop="label" :label="$t('settings.providerLabel')" width="140">
+          <el-table-column
+            prop="label"
+            :label="$t('settings.providerLabel')"
+            width="140"
+            show-overflow-tooltip
+          >
             <template #default="{ row }">
               <el-input v-model="row.label" size="small" />
             </template>
           </el-table-column>
-          <el-table-column prop="type" :label="$t('settings.providerType')" width="130">
+          <el-table-column
+            prop="type"
+            :label="$t('settings.providerType')"
+            width="120"
+          >
             <template #default="{ row }">
               <el-select v-model="row.type" size="small" class="w-full">
                 <el-option :label="$t('settings.providerTypeChat')" value="chat" />
@@ -251,7 +281,12 @@
               </el-select>
             </template>
           </el-table-column>
-          <el-table-column prop="url" label="URL" min-width="260">
+          <el-table-column
+            prop="url"
+            label="URL"
+            min-width="260"
+            show-overflow-tooltip
+          >
             <template #default="{ row }">
               <el-input
                 v-model="row.url"
@@ -301,7 +336,7 @@
 </template>
 
 <script lang="ts" setup>
-import { reactive, onMounted, watch, toRaw, ref } from "vue";
+import { reactive, onMounted, watch, toRaw, ref, onUnmounted } from "vue";
 import { setI18nLanguage } from "../i18n/index";
 import type { AppConfig, ProviderProps } from "../types";
 import { Icon } from "@iconify/vue";
@@ -356,6 +391,7 @@ const imagesDirPath = ref("");
 const cacheSize = ref(0);
 
 const editingProviders = ref<ProviderProps[]>([]);
+const providerTableWidth = ref("100%");
 const loadingProviders = ref(false);
 const resettingProviders = ref(false);
 const addingProvider = ref(false);
@@ -399,6 +435,13 @@ const loadProviders = async () => {
 
 const reloadProviders = async () => {
   await loadProviders();
+};
+
+const handleProviderTableResize = () => {
+  const viewportWidth =
+    window.innerWidth || document.documentElement.clientWidth || 0;
+  const target = Math.max(viewportWidth - 250, 600);
+  providerTableWidth.value = `${target}px`;
 };
 
 const onAddProvider = async () => {
@@ -536,9 +579,15 @@ onMounted(async () => {
     });
     await refreshCacheInfo();
     await loadProviders();
+    handleProviderTableResize();
+    window.addEventListener("resize", handleProviderTableResize);
   } catch (error) {
     console.error("获取配置失败:", error);
   }
+});
+
+onUnmounted(() => {
+  window.removeEventListener("resize", handleProviderTableResize);
 });
 
 // 监听配置变化（语言等），统一更新
@@ -608,6 +657,10 @@ watch(
   padding: 4px 8px 8px 0;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+}
+
+.provider-pane {
+  overflow: auto;
 }
 
 /* 确保 el-scrollbar 及其内部 wrap 高度继承到 100% */

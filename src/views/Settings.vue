@@ -146,30 +146,26 @@
         <span class="select-none">{{ $t("settings.providerManageTab") }}</span>
       </template>
       <div class="demo-collapse log-pane">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-2">
-            <el-button size="small" type="primary" @click="reloadProviders" :loading="loadingProviders">
-              {{ $t("settings.providerRefresh") }}
-            </el-button>
-            <el-button
-              size="small"
-              type="success"
-              @click="onAddProvider"
-              :loading="addingProvider"
-            >
-              {{ $t("settings.providerAdd") }}
-            </el-button>
-          </div>
-          <div class="flex items-center gap-3">
-            <el-button
-              size="small"
-              type="danger"
-              @click="onResetProviders"
-              :loading="resettingProviders"
-            >
-              {{ $t("settings.providerResetAll") }}
-            </el-button>
-          </div>
+        <div class="flex items-center gap-2 mb-3">
+          <el-button size="small" type="primary" @click="reloadProviders" :loading="loadingProviders">
+            {{ $t("settings.providerRefresh") }}
+          </el-button>
+          <el-button
+            size="small"
+            type="success"
+            @click="onAddProvider"
+            :loading="addingProvider"
+          >
+            {{ $t("settings.providerAdd") }}
+          </el-button>
+          <el-button
+            size="small"
+            type="danger"
+            @click="onResetProviders"
+            :loading="resettingProviders"
+          >
+            {{ $t("settings.providerResetAll") }}
+          </el-button>
         </div>
         <div class="mb-2 space-y-1">
           <div>

@@ -25,21 +25,18 @@ export class ProtocolService {
       let normalizedPath = "";
 
       try {
-        // 方法1：尝试手动提取 path 参数（最稳健，不依赖 URL 类解析 custom protocol 的怪癖）
-        // 匹配 ?path= 或 &path= 后面直到行尾或下一个 &
         const match = request.url.match(/[?&]path=([^&]+)/);
         if (match && match[1]) {
           const encodedPath = match[1];
           normalizedPath = decodeURIComponent(encodedPath);
-          // console.log(`[SafeFile] Path extracted via regex: ${normalizedPath}`);
+          if (process.platform === 'win32' && /^\/[a-zA-Z]:/.test(normalizedPath)) {
+            normalizedPath = normalizedPath.slice(1);
+          }
         } 
         // 方法2：如果没找到 path 参数，尝试作为旧版格式解析 (safe-file:///C:/...)
         else {
-          // 移除协议头
           let rawPath = request.url.replace(/^safe-file:\/\//, '');
           
-          // 如果以 / 开头（例如 safe-file:///C:/... 变成 /C:/...），先去掉
-          // 注意：保留 query 参数前的部分
           rawPath = rawPath.split('?')[0]; 
           
           // 解码

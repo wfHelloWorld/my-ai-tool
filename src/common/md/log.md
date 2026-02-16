@@ -14,6 +14,7 @@
 - 去掉了音频板块,因为存在有免费好用的的音色克隆方式(必剪安卓版)
 - provider管理页面,可以自定义添加,删除,修改provider的图标,名称,密钥等(仅支持文字和识图模型)
 - MarkdownViewer 组件的目录导航功能
+- MarkdownViewer 对图片的解析（win下的路径修复）
 
 # Version: 1.0.7 
 - chat 的控制参数

@@ -86,10 +86,19 @@ const props = defineProps<{
   source: string;
 }>();
 
+const toSafeFileFromAsset = (assetUrl: string): string => {
+  if (!assetUrl) return "";
+  let url = assetUrl;
+  if (url.startsWith("file://")) {
+    url = url.slice("file://".length);
+    return `safe-file:///image?path=${encodeURIComponent(url)}`;
+  }
+  return assetUrl;
+};
+
 const imageAssetMap: Record<string, string> = {
-// 由 Settings页面的[密钥说明] 调用
-  "../common/img/key-doc/iShot_2026-02-16_17.11.01.png": aliyunKeyImgUrl,
-  "../common/img/key-doc/iShot_2026-02-16_15.25.30.png": aliyunLoginImgUrl,
+  "../common/img/key-doc/iShot_2026-02-16_17.11.01.png": toSafeFileFromAsset(aliyunKeyImgUrl),
+  "../common/img/key-doc/iShot_2026-02-16_15.25.30.png": toSafeFileFromAsset(aliyunLoginImgUrl),
 };
 
 const normalizeSource = (raw: string): string =>

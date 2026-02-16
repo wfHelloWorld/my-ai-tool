@@ -1,7 +1,7 @@
 {
   "name": "my-ai-tool",
   "productName": "my-ai-tool",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "我的AI创作工具：多模态聊天、识图、生图、生视频一站式创作",
   "main": ".vite/build/main.js",
   "scripts": {

@@ -77,6 +77,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   openDownloadsDir: async (): Promise<{ success: boolean; error: string | null }> =>
     ipcRenderer.invoke("open-downloads-dir"),
 
+  listDownloadsImages: async (): Promise<
+    { name: string; path: string; size: number; mtimeMs: number; isDirectory: boolean }[]
+  > => ipcRenderer.invoke("list-downloads-images"),
+
   // 获取 videos 目录绝对路径
   getVideosDirPath: async (): Promise<string> =>
     ipcRenderer.invoke("get-videos-dir-path"),
@@ -84,6 +88,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   // 打开 videos 目录
   openVideosDir: async (): Promise<{ success: boolean; error: string | null }> =>
     ipcRenderer.invoke("open-videos-dir"),
+
+  listDownloadsVideos: async (): Promise<
+    { name: string; path: string; size: number; mtimeMs: number; isDirectory: boolean }[]
+  > => ipcRenderer.invoke("list-downloads-videos"),
 
   // 读取视频文件内容（返回 Buffer）
   readVideoFile: async (filePath: string): Promise<Uint8Array> =>

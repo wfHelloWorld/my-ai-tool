@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { ProviderProps } from "../types";
 import { db, initProviders } from "../db";
+import { providers as defaultProviders } from "../testData";
 
 export type ProviderType = ProviderProps["type"];
 
@@ -43,6 +44,11 @@ export const useProvidersStore = defineStore("provider", {
       const res = await db.providers.delete(id);
       this.items = this.items.filter((p) => p.id !== id);
       return res;
+    },
+    async resetProviders() {
+      await db.providers.clear();
+      await db.providers.bulkAdd(defaultProviders);
+      this.items = await db.providers.toArray();
     },
   },
 });

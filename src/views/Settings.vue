@@ -127,34 +127,209 @@
       </div>
     </el-tab-pane>
 
-    <!-- 版本日志标签（紧随模型设置之后） -->
+    <!-- 密钥说明标签 -->
+    <el-tab-pane name="key-doc">
+      <template #label>
+        <Icon icon="mdi:book-information-outline" width="15" height="15" class="pr-0.5" />
+        <span class="select-none">{{ $t("settings.keyDoc") }}</span>
+      </template>
+      <div class="demo-collapse log-pane">
+        <el-scrollbar style="height: 100%">
+          <MarkdownViewer :source="apiKeyGuideMd" />
+        </el-scrollbar>
+      </div>
+    </el-tab-pane>
+
+    <el-tab-pane name="provider-manage">
+      <template #label>
+        <Icon icon="mdi:database-cog-outline" width="15" height="15" class="pr-0.5" />
+        <span class="select-none">{{ $t("settings.providerManageTab") }}</span>
+      </template>
+      <div class="demo-collapse log-pane">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <el-button size="small" type="primary" @click="reloadProviders" :loading="loadingProviders">
+              {{ $t("settings.providerRefresh") }}
+            </el-button>
+            <el-button
+              size="small"
+              type="success"
+              @click="onAddProvider"
+              :loading="addingProvider"
+            >
+              {{ $t("settings.providerAdd") }}
+            </el-button>
+          </div>
+          <div class="flex items-center gap-3">
+            <el-button
+              size="small"
+              type="danger"
+              @click="onResetProviders"
+              :loading="resettingProviders"
+            >
+              {{ $t("settings.providerResetAll") }}
+            </el-button>
+          </div>
+        </div>
+        <div class="mb-2 space-y-1">
+          <div>
+            <el-text type="info" size="small" class="select-none">
+              {{ $t("settings.providerNote") }}
+            </el-text>
+          </div>
+          <div class="flex items-center gap-2">
+            <el-text type="info" size="small" class="select-none">
+              {{ $t("settings.providerIconTip") }}
+            </el-text>
+            <el-link
+              type="primary"
+              :href="iconifyUrl"
+              target="_blank"
+              :underline="false"
+            >
+              https://iconify.design/
+            </el-link>
+          </div>
+        </div>
+        <el-table
+          v-loading="loadingProviders"
+          :data="editingProviders"
+          size="small"
+          border
+          style="width: 100%"
+        >
+          <el-table-column prop="id" :label="$t('settings.providerId')" width="60" align="center" />
+          <el-table-column prop="name" :label="$t('settings.providerName')" width="160">
+            <template #default="{ row }">
+              <el-input v-model="row.name" size="small" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="avatar" :label="$t('settings.providerAvatar')" width="220">
+            <template #default="{ row }">
+              <div class="flex items-center gap-2">
+                <Icon
+                  v-if="row.avatar"
+                  :icon="row.avatar as string"
+                  width="20"
+                  height="20"
+                />
+                <el-select
+                  v-model="row.avatar"
+                  size="small"
+                  class="w-full"
+                  filterable
+                  allow-create
+                  default-first-option
+                  :placeholder="$t('settings.providerAvatarPlaceholder')"
+                >
+                  <el-option
+                    v-for="opt in builtinIconOptions"
+                    :key="opt.value"
+                    :label="opt.label"
+                    :value="opt.value"
+                  >
+                    <div class="flex items-center gap-2">
+                      <Icon :icon="opt.value" width="18" height="18" />
+                      <span>{{ opt.label }}</span>
+                    </div>
+                  </el-option>
+                </el-select>
+              </div>
+            </template>
+          </el-table-column>
+          <el-table-column prop="title" :label="$t('settings.providerTitle')" width="220">
+            <template #default="{ row }">
+              <el-input v-model="row.title" size="small" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="label" :label="$t('settings.providerLabel')" width="140">
+            <template #default="{ row }">
+              <el-input v-model="row.label" size="small" />
+            </template>
+          </el-table-column>
+          <el-table-column prop="type" :label="$t('settings.providerType')" width="130">
+            <template #default="{ row }">
+              <el-select v-model="row.type" size="small" class="w-full">
+                <el-option :label="$t('settings.providerTypeChat')" value="chat" />
+                <el-option :label="$t('settings.providerTypeVision')" value="vision" />
+              </el-select>
+            </template>
+          </el-table-column>
+          <el-table-column prop="url" label="URL" min-width="260">
+            <template #default="{ row }">
+              <el-input
+                v-model="row.url"
+                size="small"
+                :placeholder="$t('settings.providerUrlPlaceholder')"
+              />
+            </template>
+          </el-table-column>
+          <el-table-column :label="$t('settings.providerActions')" width="160" fixed="right">
+            <template #default="{ row }">
+              <el-button
+                type="primary"
+                size="small"
+                @click="onSaveProvider(row)"
+                :loading="savingId === row.id"
+              >
+                {{ $t("settings.providerSave") }}
+              </el-button>
+              <el-button
+                type="danger"
+                size="small"
+                @click="onDeleteProvider(row)"
+                :loading="deletingId === row.id"
+              >
+                {{ $t("settings.providerDelete") }}
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-tab-pane>
+
+    <!-- 版本日志标签 -->
     <el-tab-pane name="log">
       <template #label>
         <Icon icon="ant-design:file-text-outlined" width="15" height="15" class="pr-0.5" />
         <span class="select-none">{{ $t("settings.versionLog") }}</span>
       </template>
-      <div class="demo-collapse p-4 log-pane">
+      <div class="demo-collapse log-pane">
         <el-scrollbar style="height: 100%">
           <MarkdownViewer :source="logMd" />
         </el-scrollbar>
       </div>
     </el-tab-pane>
+
   </el-tabs>
 </template>
 
 <script lang="ts" setup>
 import { reactive, onMounted, watch, toRaw, ref } from "vue";
 import { setI18nLanguage } from "../i18n/index";
-import type { AppConfig } from "../types";
+import type { AppConfig, ProviderProps } from "../types";
 import { Icon } from "@iconify/vue";
 import { useI18nStore } from "../stores/useI18nStore";
 import { ElMessage } from "element-plus";
 import { useI18n } from "vue-i18n";
 import MarkdownViewer from "../components/MarkdownViewer.vue";
 import logMdContent from "../common/md/log.md?raw";
+import apiKeyGuideMdContent from "../common/md/api-key-guide.md?raw";
+import { useProvidersStore } from "../stores/useProviderStore";
 
 const i18nStore = useI18nStore();
+const providersStore = useProvidersStore();
 const { t } = useI18n();
+
+const iconifyUrl = "https://iconify.design/";
+const builtinIconOptions = [
+  { label: "Basketball (bx:basketball)", value: "bx:basketball" },
+  { label: "Beer (bx:beer)", value: "bx:beer" },
+  { label: "Chat (mdi:chat-processing-outline)", value: "mdi:chat-processing-outline" },
+  { label: "Robot (mdi:robot-outline)", value: "mdi:robot-outline" },
+  { label: "Image (mdi:image-outline)", value: "mdi:image-outline" },
+  { label: "Vision (mdi:eye-outline)", value: "mdi:eye-outline" },
+] as const;
 
 const activeName = ref("general");
 
@@ -174,8 +349,8 @@ const currentConfig = reactive<AppConfig>({
   fontSize: 1,
 });
 
-// 版本日志内容（运行时加载）
 const logMd = ref(logMdContent);
+const apiKeyGuideMd = ref(apiKeyGuideMdContent);
 
 // 窗口缩放比例（通过 Electron 控制），默认 1
 const zoom = ref(1);
@@ -183,6 +358,13 @@ const zoom = ref(1);
 // 图片缓存：目录路径与大小（字节）
 const imagesDirPath = ref("");
 const cacheSize = ref(0);
+
+const editingProviders = ref<ProviderProps[]>([]);
+const loadingProviders = ref(false);
+const resettingProviders = ref(false);
+const addingProvider = ref(false);
+const savingId = ref<number | null>(null);
+const deletingId = ref<number | null>(null);
 
 const formatBytes = (bytes: number): string => {
   if (!bytes || bytes <= 0) return "0 B";
@@ -202,6 +384,119 @@ const refreshCacheInfo = async () => {
     cacheSize.value = await window.electronAPI.getImagesCacheSize();
   } catch (e) {
     cacheSize.value = 0;
+  }
+};
+
+const loadProviders = async () => {
+  loadingProviders.value = true;
+  try {
+    if (!providersStore.items || providersStore.items.length === 0) {
+      await providersStore.initProvidersStore();
+    }
+    editingProviders.value = providersStore.items.map((p) => ({ ...p }));
+  } catch (e) {
+    console.error("加载模型列表失败:", e);
+  } finally {
+    loadingProviders.value = false;
+  }
+};
+
+const reloadProviders = async () => {
+  await loadProviders();
+};
+
+const onAddProvider = async () => {
+  const base: Omit<ProviderProps, "id"> = {
+    name: "",
+    title: "",
+    desc: "",
+    avatar: "",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    label: "",
+    type: "chat",
+    url: "",
+  };
+  try {
+    addingProvider.value = true;
+    const newId = await providersStore.createProvider(base);
+    editingProviders.value.push({ ...(base as ProviderProps), id: newId } as ProviderProps);
+    ElMessage.success(t("settings.providerAddSuccess"));
+  } catch (e) {
+    console.error("新增模型失败:", e);
+    ElMessage.error(t("settings.providerAddFailed"));
+  } finally {
+    addingProvider.value = false;
+  }
+};
+
+const onResetProviders = async () => {
+  if (!window.confirm("确定将所有模型恢复为默认配置？")) return;
+  try {
+    resettingProviders.value = true;
+    await providersStore.resetProviders();
+    editingProviders.value = providersStore.items.map((p) => ({ ...p }));
+    ElMessage.success("已重置所有模型为默认配置");
+  } catch (e) {
+    console.error("重置模型失败:", e);
+    ElMessage.error("重置模型失败");
+  } finally {
+    resettingProviders.value = false;
+  }
+};
+
+const onSaveProvider = async (row: ProviderProps) => {
+  try {
+    if (row.type !== "chat" && row.type !== "vision") {
+      ElMessage.error(t("settings.providerTypeLimit"));
+      return;
+    }
+    savingId.value = row.id ?? null;
+    if (!row.id) {
+      const base: Omit<ProviderProps, "id"> = {
+        name: row.name,
+        title: row.title,
+        desc: row.desc ?? "",
+        avatar: row.avatar ?? "",
+        createdAt: row.createdAt ?? new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        label: row.label,
+        type: row.type,
+        url: row.url,
+      };
+      const newId = await providersStore.createProvider(base);
+      row.id = newId;
+    } else {
+      row.updatedAt = new Date().toISOString();
+      await providersStore.updateProvider(row);
+    }
+    ElMessage.success(t("settings.providerSaveSuccess"));
+  } catch (e) {
+    console.error("保存模型失败:", e);
+    ElMessage.error(t("settings.providerSaveFailed"));
+  } finally {
+    savingId.value = null;
+  }
+};
+
+const onDeleteProvider = async (row: ProviderProps) => {
+  if (!row.id) {
+    ElMessage.error(t("settings.providerDeleteFailed"));
+    return;
+  }
+  const name = row.title || row.name || String(row.id);
+  const confirmText = t("settings.providerDeleteConfirm", { name });
+  if (!window.confirm(confirmText)) return;
+  try {
+    deletingId.value = row.id;
+    await providersStore.deleteProvider(row.id);
+    editingProviders.value = editingProviders.value.filter((p) => p.id !== row.id);
+    ElMessage.success(t("settings.providerDeleteSuccess"));
+  } catch (e) {
+    console.error("删除模型失败:", e);
+    ElMessage.error(t("settings.providerDeleteFailed"));
+  } finally {
+    deletingId.value = null;
   }
 };
 
@@ -243,8 +538,8 @@ onMounted(async () => {
       zoom.value = factor;
       currentConfig.fontSize = factor;
     });
-    // 初始化缓存信息
     await refreshCacheInfo();
+    await loadProviders();
   } catch (error) {
     console.error("获取配置失败:", error);
   }
@@ -281,7 +576,7 @@ watch(
   flex: 1;
   min-height: 0; /* 允许内部滚动 */
   display: flex; /* 让 pane 可设置为 flex:1 */
-  padding: 32px;
+  padding: 16px 24px;
   color: #6b778c;
   font-size: 16px;
   font-weight: 600;
@@ -311,13 +606,12 @@ watch(
 }
 /* 版本日志模块：限制高度并允许滚动 */
 .log-pane {
-  /* 版本日志容器占满内容区高度，滚动由 el-scrollbar 接管 */
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  padding-right: 8px; /* 预留滚动条空间，避免文字被遮挡 */
-  -webkit-overflow-scrolling: touch; /* 提升滚动体验（macOS/触控） */
-  overscroll-behavior: contain; /* 防止父级联动滚动 */
+  padding: 4px 8px 8px 0;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
 }
 
 /* 确保 el-scrollbar 及其内部 wrap 高度继承到 100% */

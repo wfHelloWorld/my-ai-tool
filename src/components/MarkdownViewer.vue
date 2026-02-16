@@ -1,10 +1,42 @@
 <template>
-  <div class="prose prose-slate prose-headings:my-2 prose-pre:p-0 prose-code:before:content-none prose-code:after:content-none max-w-none" @click="handleClick">
-    <vue-markdown :source="source" :plugins="plugins" />
+  <div class="markdown-wrapper" @click="handleClick">
+    <div v-if="headings.length" class="toc-sticky">
+      <div
+        class="toc-hover-area"
+        @mouseenter="tocOpen = true"
+        @mouseleave="tocOpen = false"
+      >
+        <div class="toc-toggle">
+          <span class="toc-toggle-label">目录</span>
+          <span class="toc-toggle-arrow" :class="{ 'is-open': tocOpen }">›</span>
+        </div>
+        <div v-if="tocOpen" class="toc-panel">
+          <div class="toc-title">目录</div>
+          <ul class="toc-list">
+            <li
+              v-for="h in headings"
+              :key="h.id"
+              :class="['toc-item', `toc-level-${h.level}`, { 'is-active': h.id === activeHeadingId }]"
+            >
+              <button type="button" class="toc-link" @click.stop="scrollToHeading(h.id)">
+                {{ h.text }}
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div
+      ref="contentRef"
+      class="prose prose-slate prose-headings:my-2 prose-pre:p-0 prose-code:before:content-none prose-code:after:content-none max-w-none"
+    >
+      <vue-markdown :source="normalizedSource" :plugins="plugins" />
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
+import { ref, onMounted, watch, nextTick, computed, onUnmounted } from "vue";
 import VueMarkdown from "vue-markdown-render";
 import MarkdownItAnchor from "markdown-it-anchor";
 import markdownItHighlightjs from "markdown-it-highlightjs";
@@ -16,6 +48,8 @@ import css from "highlight.js/lib/languages/css";
 import xml from "highlight.js/lib/languages/xml";
 import { ElMessage } from "element-plus";
 import MarkdownIt from "markdown-it";
+import aliyunKeyImgUrl from "../common/img/key-doc/iShot_2026-02-16_17.11.01.png";
+import aliyunLoginImgUrl from "../common/img/key-doc/iShot_2026-02-16_15.25.30.png";
 
 // 注册需要的代码高亮语言
 hljs.registerLanguage("javascript", javascript);
@@ -46,12 +80,153 @@ function markdownItCopyButton(md: MarkdownIt) {
   };
 }
 
-// Markdown 插件（锚点 + 代码高亮）
 const plugins = [MarkdownItAnchor, markdownItHighlightjs, markdownItCopyButton];
 
-defineProps<{
+const props = defineProps<{
   source: string;
 }>();
+
+const imageAssetMap: Record<string, string> = {
+// 由 Settings页面的[密钥说明] 调用
+  "../common/img/key-doc/iShot_2026-02-16_17.11.01.png": aliyunKeyImgUrl,
+  "../common/img/key-doc/iShot_2026-02-16_15.25.30.png": aliyunLoginImgUrl,
+};
+
+const normalizeSource = (raw: string): string =>
+  raw.replace(/!\[([^\]]*)]\(([^)]+)\)/g, (match, alt, src) => {
+    const mapped = imageAssetMap[src];
+    if (!mapped) return match;
+    return `![${alt}](${mapped})`;
+  });
+
+const normalizedSource = computed(() => normalizeSource(props.source));
+
+const contentRef = ref<HTMLElement | null>(null);
+
+interface HeadingItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+const headings = ref<HeadingItem[]>([]);
+const tocOpen = ref(false);
+const activeHeadingId = ref<string | null>(null);
+let scrollContainer: HTMLElement | Window | null = null;
+
+const updateActiveHeading = () => {
+  const root = contentRef.value;
+  if (!root || !headings.value.length) return;
+  const offset = 120;
+  let currentId: string | null = null;
+  for (const h of headings.value) {
+    const el = root.querySelector<HTMLElement>(`#${h.id}`);
+    if (!el) continue;
+    const rect = el.getBoundingClientRect();
+    if (rect.top <= offset) {
+      currentId = h.id;
+    } else {
+      break;
+    }
+  }
+  if (!currentId) {
+    currentId = headings.value[0].id;
+  }
+  activeHeadingId.value = currentId;
+};
+
+const handleScroll = () => {
+  updateActiveHeading();
+};
+
+const removeScrollListener = () => {
+  if (!scrollContainer) return;
+  if (scrollContainer instanceof Window) {
+    scrollContainer.removeEventListener("scroll", handleScroll);
+  } else {
+    scrollContainer.removeEventListener("scroll", handleScroll);
+  }
+  scrollContainer = null;
+};
+
+const setupScrollListener = () => {
+  removeScrollListener();
+  const root = contentRef.value;
+  if (!root) return;
+  const container = root.closest<HTMLElement>(".el-scrollbar__wrap");
+  if (container) {
+    scrollContainer = container;
+    container.addEventListener("scroll", handleScroll, { passive: true });
+  } else {
+    scrollContainer = window;
+    window.addEventListener("scroll", handleScroll, { passive: true });
+  }
+};
+
+const buildHeadings = () => {
+  const root = contentRef.value;
+  if (!root) return;
+  const elements = Array.from(
+    root.querySelectorAll<HTMLElement>("h1, h2, h3, h4, h5, h6")
+  );
+  const list: HeadingItem[] = [];
+  const usedIds = new Set<string>();
+  elements.forEach((el, index) => {
+    const text = el.textContent ? el.textContent.trim() : "";
+    if (!text) return;
+    const base = text
+      .toLowerCase()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9\-\u4e00-\u9fa5]/g, "");
+    let candidate = base || `heading-${index + 1}`;
+    if (/^[-\d]/.test(candidate)) {
+      candidate = `h-${candidate}`;
+    }
+    let suffix = 1;
+    while (usedIds.has(candidate)) {
+      candidate = `${base || "heading"}-${suffix++}`;
+    }
+    const id = candidate;
+    el.id = id;
+    usedIds.add(id);
+    const level = Number(el.tagName.substring(1)) || 1;
+    list.push({ id, text, level });
+  });
+  headings.value = list;
+};
+
+const scrollToHeading = (id: string) => {
+  const root = contentRef.value;
+  if (!root) return;
+  const target = root.querySelector<HTMLElement>(`#${id}`);
+  if (!target) return;
+  target.scrollIntoView({
+    behavior: "smooth",
+    block: "start",
+    inline: "nearest",
+  });
+};
+
+onMounted(async () => {
+  await nextTick();
+  buildHeadings();
+  updateActiveHeading();
+  setupScrollListener();
+});
+
+watch(
+  () => props.source,
+  async () => {
+    await nextTick();
+    buildHeadings();
+    updateActiveHeading();
+    setupScrollListener();
+  }
+);
+
+onUnmounted(() => {
+  removeScrollListener();
+});
 
 const handleClick = async (event: MouseEvent) => {
   const target = event.target as HTMLElement;
@@ -155,5 +330,123 @@ const handleClick = async (event: MouseEvent) => {
   border-radius: 0.5rem;
   padding: 1rem;
   border: 1px solid #e5e7eb;
+}
+
+.markdown-wrapper {
+  position: relative;
+  overflow: visible;
+}
+
+.toc-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  pointer-events: none;
+}
+
+.toc-hover-area {
+  position: relative;
+  pointer-events: auto;
+}
+
+.toc-toggle {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 30;
+  pointer-events: auto;
+}
+
+.toc-toggle-arrow {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+
+.toc-toggle-arrow.is-open {
+  transform: rotate(90deg);
+}
+
+.toc-panel {
+  position: absolute;
+  top: 2.1rem;
+  right: 0.5rem;
+  width: 220px;
+  max-height: 60vh;
+  overflow: auto;
+  background-color: rgba(255, 255, 255, 0.96);
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 0.5rem 0.75rem 0.6rem;
+  font-size: 0.8rem;
+  z-index: 29;
+  pointer-events: auto;
+}
+
+.toc-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+  color: #111827;
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.toc-item {
+  margin: 0.12rem 0;
+}
+
+.toc-link {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  color: #374151;
+  font-size: 0.78rem;
+}
+
+.toc-link:hover {
+  background-color: #e5e7eb;
+}
+
+.toc-item.is-active .toc-link {
+  background-color: #e5e7eb;
+  color: #111827;
+  font-weight: 600;
+}
+
+.toc-level-1 .toc-link {
+  font-weight: 600;
+  padding-left: 2px;
+}
+
+.toc-level-2 .toc-link {
+  padding-left: 12px;
+}
+
+.toc-level-3 .toc-link {
+  padding-left: 20px;
+}
+
+.toc-level-4 .toc-link,
+.toc-level-5 .toc-link,
+.toc-level-6 .toc-link {
+  padding-left: 28px;
+  font-size: 0.76rem;
 }
 </style>

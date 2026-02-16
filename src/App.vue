@@ -36,12 +36,12 @@
           </el-menu-item>
         </el-sub-menu>
 
-        <el-menu-item index="/voice">
+        <!-- <el-menu-item index="/voice">
           <el-icon>
             <Icon icon="mdi:microphone-outline" />
           </el-icon>
           <span>{{ $t('common.voice') }}</span>
-        </el-menu-item>
+        </el-menu-item> -->
 
         <el-sub-menu index="/video">
           <template #title>

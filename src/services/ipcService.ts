@@ -1,5 +1,6 @@
 import { BrowserWindow, ipcMain, shell } from 'electron';
 import fs from 'fs/promises';
+import path from 'node:path';
 import { ChatService } from './chatService';
 import { FileService } from './fileService';
 import { configManager } from '../config';
@@ -91,11 +92,48 @@ export class IpcService {
       return { success: result === "", error: result || null };
     });
 
-    // 打开下载/生成图片目录
+    // 打开下载/生成图片目录（确保目录存在，兼容 Windows 等平台）
     ipcMain.handle("open-downloads-dir", async () => {
       const dir = this.fileService.getDownloadsImagesDirPath();
+      try {
+        await fs.mkdir(dir, { recursive: true });
+      } catch (e) {
+        void e;
+      }
       const result = await shell.openPath(dir);
       return { success: result === "", error: result || null };
+    });
+
+    ipcMain.handle("list-downloads-images", async () => {
+      const dir = this.fileService.getDownloadsImagesDirPath();
+      try {
+        await fs.mkdir(dir, { recursive: true });
+      } catch (e) {
+        void e;
+      }
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        const files: Array<{ name: string; path: string; size: number; mtimeMs: number; isDirectory: boolean }> = [];
+        for (const entry of entries) {
+          const p = path.join(dir, entry.name);
+          try {
+            const stat = await fs.stat(p);
+            files.push({
+              name: entry.name,
+              path: p,
+              size: stat.size,
+              mtimeMs: stat.mtimeMs,
+              isDirectory: entry.isDirectory(),
+            });
+          } catch (e) {
+            void e;
+          }
+        }
+        return files;
+      } catch (e) {
+        console.error("list-downloads-images error:", e);
+        throw e;
+      }
     });
 
     // 获取 videos 目录绝对路径
@@ -116,6 +154,38 @@ export class IpcService {
         return { success: result === "", error: result || null, path: result === "" ? userDir : dlDir };
       }
       return { success: true, error: null, path: dlDir };
+    });
+
+    ipcMain.handle("list-downloads-videos", async () => {
+      const dir = this.fileService.getDownloadsVideosDirPath();
+      try {
+        await fs.mkdir(dir, { recursive: true });
+      } catch (e) {
+        void e;
+      }
+      try {
+        const entries = await fs.readdir(dir, { withFileTypes: true });
+        const files: Array<{ name: string; path: string; size: number; mtimeMs: number; isDirectory: boolean }> = [];
+        for (const entry of entries) {
+          const p = path.join(dir, entry.name);
+          try {
+            const stat = await fs.stat(p);
+            files.push({
+              name: entry.name,
+              path: p,
+              size: stat.size,
+              mtimeMs: stat.mtimeMs,
+              isDirectory: entry.isDirectory(),
+            });
+          } catch (e) {
+            void e;
+          }
+        }
+        return files;
+      } catch (e) {
+        console.error("list-downloads-videos error:", e);
+        throw e;
+      }
     });
 
     // 读取视频文件内容（用于前端 Blob 预览）

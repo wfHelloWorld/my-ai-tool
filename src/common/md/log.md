@@ -16,6 +16,7 @@
 - MarkdownViewer 组件的目录导航功能
 - MarkdownViewer 对图片的解析（win下的路径修复）
 - wan2.6-image 不能传入多张图的bug修复
+- 下载界面卡死的问题
 
 # Version: 1.0.7 
 - chat 的控制参数

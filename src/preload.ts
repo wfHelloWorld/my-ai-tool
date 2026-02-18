@@ -93,6 +93,9 @@ contextBridge.exposeInMainWorld("electronAPI", {
     { name: string; path: string; size: number; mtimeMs: number; isDirectory: boolean }[]
   > => ipcRenderer.invoke("list-downloads-videos"),
 
+  openVideoFile: async (filePath: string): Promise<{ success: boolean; error: string | null }> =>
+    ipcRenderer.invoke("open-video-file", filePath),
+
   // 读取视频文件内容（返回 Buffer）
   readVideoFile: async (filePath: string): Promise<Uint8Array> =>
     ipcRenderer.invoke("read-video-file", filePath),

@@ -70,28 +70,37 @@
             style="width: 100%"
           >
             <el-table-column
-              :label="i18nStore.t('download.preview')"
-              width="220"
+              :label="i18nStore.t('download.fileName')"
+              min-width="260"
+              prop="name"
             >
               <template #default="{ row }">
-                <div v-if="isVideoFile(row.name)" class="flex flex-col gap-1">
-                  <video
-                    :src="toSafeFileUrl(row.path)"
-                    :ref="el => setVideoRef(row.path, el as HTMLVideoElement | null)"
-                    class="w-48 h-28 rounded border bg-black"
-                  ></video>
-                  <div class="flex items-center justify-between gap-2">
-                    <el-button size="small" @click="togglePlay(row.path)">
-                      <Icon :icon="playingMap[row.path] ? 'mdi:pause' : 'mdi:play'" />
-                    </el-button>
-                    <el-button size="small" @click="enterFullscreen(row.path)">
-                      <Icon icon="mdi:fullscreen" />
-                    </el-button>
-                  </div>
+                <div class="flex items-center gap-2">
+                  <template v-if="isVideoFile(row.name)">
+                    <el-tooltip
+                      placement="right"
+                      effect="dark"
+                      :hide-after="0"
+                      :show-after="300"
+                    >
+                      <template #content>
+                        <video
+                          :src="toSafeFileUrl(row.path)"
+                          preload="metadata"
+                          muted
+                          playsinline
+                          class="w-48 h-28 rounded border bg-black"
+                        ></video>
+                      </template>
+                      <el-button size="small" @click="openVideo(row.path)">
+                        播放
+                      </el-button>
+                    </el-tooltip>
+                  </template>
+                  <span class="truncate">{{ row.name }}</span>
                 </div>
               </template>
             </el-table-column>
-            <el-table-column prop="name" :label="i18nStore.t('download.fileName')" />
             <el-table-column prop="mtimeDisplay" :label="i18nStore.t('download.modified')" />
             <el-table-column prop="sizeDisplay" :label="i18nStore.t('download.size')" />
           </el-table>
@@ -125,8 +134,6 @@ const loadingImages = ref(false);
 const loadingVideos = ref(false);
 const imagesError = ref("");
 const videosError = ref("");
-const videoRefs = ref<Record<string, HTMLVideoElement | null>>({});
-const playingMap = ref<Record<string, boolean>>({});
 
 const toSafeFileUrl = (localPath: string) => {
   if (!localPath) return "";
@@ -141,37 +148,11 @@ const isVideoFile = (name: string) => {
   return /\.(mp4|mov|m4v|webm|ogv|ogg)$/i.test(name || "");
 };
 
-const setVideoRef = (path: string, el: HTMLVideoElement | null) => {
-  const next = { ...videoRefs.value };
-  if (el) {
-    next[path] = el;
-  } else {
-    delete next[path];
-  }
-  videoRefs.value = next;
-};
-
-const getVideo = (path: string) => {
-  return videoRefs.value[path] || null;
-};
-
-const togglePlay = (path: string) => {
-  const video = getVideo(path);
-  if (!video) return;
-  if (video.paused) {
-    void video.play();
-    playingMap.value = { ...playingMap.value, [path]: true };
-  } else {
-    video.pause();
-    playingMap.value = { ...playingMap.value, [path]: false };
-  }
-};
-
-const enterFullscreen = (path: string) => {
-  const video = getVideo(path);
-  if (!video) return;
-  if (video.requestFullscreen) {
-    void video.requestFullscreen();
+const openVideo = async (filePath: string) => {
+  try {
+    await (window as any).electronAPI.openVideoFile(filePath);
+  } catch (e) {
+    videosError.value = String(e instanceof Error ? e.message : e);
   }
 };
 

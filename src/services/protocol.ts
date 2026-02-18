@@ -3,6 +3,8 @@ import url from 'url';
 import path from 'node:path';
 import { lookup } from 'mime-types';
 import fs from 'fs/promises';
+import fsSync from 'fs';
+import { Readable } from 'node:stream';
 
 /**
  * 协议处理服务，负责处理自定义协议
@@ -64,11 +66,12 @@ export class ProtocolService {
         return new Response("Path not found in URL", { status: 400 });
       }
 
-      // 读取文件
+      // 读取文件（流式返回，避免一次性加载大文件导致卡顿）
       try {
-        const data = await fs.readFile(normalizedPath);
         const mimeType = lookup(normalizedPath) || 'application/octet-stream';
-        return new Response(data, {
+        const nodeStream = fsSync.createReadStream(normalizedPath);
+        const webStream = Readable.toWeb(nodeStream) as unknown as ReadableStream;
+        return new Response(webStream, {
           headers: {
             'Content-Type': String(mimeType),
             'Access-Control-Allow-Origin': '*'

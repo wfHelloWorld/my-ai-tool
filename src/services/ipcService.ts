@@ -199,6 +199,17 @@ export class IpcService {
       }
     });
 
+    // 使用系统默认播放器打开单个视频文件
+    ipcMain.handle("open-video-file", async (_event, filePath: string) => {
+      try {
+        const result = await shell.openPath(filePath);
+        return { success: result === "", error: result || null };
+      } catch (err: unknown) {
+        console.error("Open video file error:", err);
+        return { success: false, error: String(err) };
+      }
+    });
+
     ipcMain.handle("wan2.2-kf2v-flash", async (_event, payload) => {
       try {
         const cfg = await configManager.getConfig();

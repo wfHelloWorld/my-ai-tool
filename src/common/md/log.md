@@ -15,6 +15,7 @@
 - provider管理页面,可以自定义添加,删除,修改provider的图标,名称,密钥等(仅支持文字和识图模型)
 - MarkdownViewer 组件的目录导航功能
 - MarkdownViewer 对图片的解析（win下的路径修复）
+- wan2.6-image 不能传入多张图的bug修复
 
 # Version: 1.0.7 
 - chat 的控制参数

@@ -169,7 +169,6 @@ const imageList = ref<ImageItem[]>([]);
 const fileInputRef = ref<HTMLInputElement | null>(null);
 
 const canAddImage = computed(() => {
-  if (enable_interleave.value) return imageList.value.length < 1;
   return imageList.value.length < 4;
 });
 
